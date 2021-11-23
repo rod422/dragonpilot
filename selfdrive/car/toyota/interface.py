@@ -316,15 +316,15 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
       ret.lateralTuning.pid.kf = 0.00006
 
-    elif candidate in [CAR.PRIUS_ALPHA]:
-      stop_and_go = False
+    elif candidate == CAR.PRIUS_ALPHA:
+      stop_and_go = True
       ret.safetyConfigs[0].safetyParam = 73
       ret.wheelbase = 2.78
-      ret.steerRatio = 18
+      ret.steerRatio = 17.8
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
-      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.02]]
+      ret.lateralTuning.pid.kf = 0.000025
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
@@ -343,7 +343,7 @@ class CarInterface(CarInterfaceBase):
     smartDsu = 0x2FF in fingerprint[0]
     # In TSS2 cars the camera does long control
     found_ecus = [fw.ecu for fw in car_fw]
-    ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR)
+    ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR) and (not smartDsu)
     ret.enableGasInterceptor = 0x201 in fingerprint[0]
     # if the smartDSU is detected, openpilot can send ACC_CMD (and the smartDSU will block it from the DSU) or not (the DSU is "connected")
     ret.openpilotLongitudinalControl = smartDsu or ret.enableDsu or candidate in TSS2_CAR
