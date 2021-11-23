@@ -63,7 +63,7 @@ commit = get_git_commit()
 if (origin is not None) and (branch is not None):
   try:
     # Update the username to your Git-username
-    comma_remote = origin.startswith('git@github.com:dragonpilot-community') or origin.startswith('https://github.com/dragonpilot-community')
+    comma_remote = origin.startswith('git@github.com:arne182') or origin.startswith('https://github.com/arne182')
     tested_branch = get_git_branch() in TESTED_BRANCHES
 
     dirty = False

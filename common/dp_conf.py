@@ -17,18 +17,18 @@ confs = [
   {'name': 'dp_thermal_overheat', 'default': False, 'type': 'Bool', 'conf_type': ['struct']},
 
   # custom api server
-  {'name': 'dp_api_custom', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
+  {'name': 'dp_api_custom', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_api_custom_url', 'default': 'https://api.retropilot.org', 'type': 'Text', 'depends': [{'name': 'dp_api_custom', 'vals': [True]}], 'conf_type': ['param']},
 
-  {'name': 'dp_atl', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct'], 'update_once': True},
-  {'name': 'dp_atl_op_long', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [True]}], 'conf_type': ['param', 'struct'], 'update_once': True},
+  {'name': 'dp_atl', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct'], 'update_once': True},
+  {'name': 'dp_atl_op_long', 'default': True, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [True]}], 'conf_type': ['param', 'struct'], 'update_once': True},
   # dashcam related
-  {'name': 'dp_dashcamd', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
+  {'name': 'dp_dashcamd', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   # auto shutdown
   {'name': 'dp_auto_shutdown', 'default': False, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_auto_shutdown_in', 'default': 90, 'type': 'UInt16', 'min': 0, 'max': 600, 'depends': [{'name': 'dp_auto_shutdown', 'vals': [True]}], 'conf_type': ['param']},
   # service
-  {'name': 'dp_updated', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
+  {'name': 'dp_updated', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_logger', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_athenad', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct'], 'update_once': True},
   {'name': 'dp_uploader', 'default': False, 'type': 'Bool', 'depends': [{'name': 'dp_atl', 'vals': [False]}], 'conf_type': ['param', 'struct'], 'update_once': True},
