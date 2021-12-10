@@ -316,15 +316,15 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
       ret.lateralTuning.pid.kf = 0.00006
 
-    elif candidate in [CAR.PRIUS_ALPHA]:
-      stop_and_go = False
+    elif candidate == CAR.PRIUS_ALPHA:
+      stop_and_go = True
       ret.safetyParam = 73
       ret.wheelbase = 2.78
-      ret.steerRatio = 18
+      ret.steerRatio = 17.8
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
-      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.02]]
+      ret.lateralTuning.pid.kf = 0.000025
 
     elif candidate == CAR.PRIUS_C:
       ret.minEnableSpeed = -1
