@@ -182,11 +182,21 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.safetyConfigs[0].safetyParam = 73
       ret.wheelbase = 2.68986
-      ret.steerRatio = 14.3
+      ret.steerRatio = 14.4
       tire_stiffness_factor = 0.7933
       ret.mass = 3585. * CV.LB_TO_KG + STD_CARGO_KG # Average between ICE and Hybrid
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
-      ret.lateralTuning.pid.kf = 0.00007818594
+      ret.lateralTuning.init('indi')
+      ret.lateralTuning.indi.innerLoopGainBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.innerLoopGainV = [3.625, 4.6, 12, 15]
+      ret.lateralTuning.indi.outerLoopGainBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.outerLoopGainV = [3.0, 3.625, 10.75, 14.99]
+      ret.lateralTuning.indi.timeConstantBP = [10, 15, 18, 24, 30]
+      ret.lateralTuning.indi.timeConstantV = [0.4, 0.4, 0.8, 1.8, 2.2]
+      ret.lateralTuning.indi.actuatorEffectivenessBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.actuatorEffectivenessV = [1.0, 1.5, 15, 15]
+      ret.steerActuatorDelay = 0
+      ret.steerRateCost = 0.4
+      ret.steerLimitTimer = 1 
 
       # 2019+ Rav4 TSS2 uses two different steering racks and specific tuning seems to be necessary.
       # See https://github.com/commaai/openpilot/pull/21429#issuecomment-873652891
@@ -323,8 +333,18 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 17.8
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.02]]
-      ret.lateralTuning.pid.kf = 0.000025
+      ret.lateralTuning.init('indi')
+      ret.lateralTuning.indi.innerLoopGainBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.innerLoopGainV = [3.625, 4.6, 12, 15]
+      ret.lateralTuning.indi.outerLoopGainBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.outerLoopGainV = [3.0, 3.625, 10.75, 14.99]
+      ret.lateralTuning.indi.timeConstantBP = [10, 15, 18, 24, 30]
+      ret.lateralTuning.indi.timeConstantV = [0.4, 0.4, 0.8, 1.8, 2.2]
+      ret.lateralTuning.indi.actuatorEffectivenessBP = [10, 13.7, 13.71, 20]
+      ret.lateralTuning.indi.actuatorEffectivenessV = [1.0, 1.5, 15, 15]
+      ret.steerActuatorDelay = 0
+      ret.steerRateCost = 0.4
+      ret.steerLimitTimer = 1 
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
@@ -371,8 +391,8 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.3, 1.0, 0.7]
       ret.longitudinalTuning.kiBP = [0., 5., 12., 20., 27.]
       ret.longitudinalTuning.kiV = [.35, .23, .20, .17, .1]
-      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
-      ret.startingAccelRate = 6.0  # release brakes fast
+      ret.stoppingDecelRate = 0.07  # reach stopping target smoothly
+      ret.startingAccelRate = 20.0  # release brakes fast
     else:
       # Default longitudinal tune
       ret.longitudinalTuning.deadzoneBP = [0., 9.]
