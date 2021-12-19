@@ -225,9 +225,9 @@ class LongitudinalMpc():
     # 1.2-1.8 TR succeeds at all tests with no FCW
 
     TRs = [1.2, 1.8, 2.7]
-    x_ego_obstacle_cost_multiplier = interp(self.desired_TR, TRs, [3.5, 1.0, 0.1])
-    j_ego_cost_multiplier = interp(self.desired_TR, TRs, [0.4, 0.43, 0.45])
-    d_zone_cost_multiplier = interp(self.desired_TR, TRs, [4., 1.0, 1.0])
+    x_ego_obstacle_cost_multiplier = interp(self.desired_TR, TRs, [3.0, 1.0, 0.1])
+    j_ego_cost_multiplier = interp(self.desired_TR, TRs, [0.3, 0.35, 0.4])
+    d_zone_cost_multiplier = interp(self.desired_TR, TRs, [4.0, 1.0, 1.0])
 
     #TRs = [1.2, 1.8, 2.7]
     #x_ego_obstacle_cost_multiplier = interp(self.desired_TR, TRs, [3.0, 1.0, 0.1])
