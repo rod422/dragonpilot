@@ -1,3 +1,9 @@
+dragonpilot 0.8.10-4
+========================
+* FIXED: Allow gas press. (Thanks to @loveloveses)
+* FIXED: Honda SnG. (Thanks to @loveloveses
+* ADDED: Toyota: Display Blue Barriers When Engaged. (Thanks to @krkeegan)
+
 dragonpilot 0.8.10-3
 ========================
 * NAV: Gaode/amap to use new key combination. (Thanks to @loveloveses)

@@ -131,6 +131,10 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
       ("STANDSTILL", 50),
     ]
 
+  # dp - add lead distance to accord, accord h, insight
+  if CP.carFingerprint in (CAR.ACCORD, CAR.ACCORDH, CAR.INSIGHT):
+    signals += [("LEAD_DISTANCE", "RADAR_HUD", 0)]
+
   if CP.carFingerprint == CAR.CIVIC:
     signals += [("IMPERIAL_UNIT", "HUD_SETTING", 0),
                 ("EPB_STATE", "EPB_STATUS", 0)]
@@ -213,6 +217,10 @@ class CarState(CarStateBase):
       ret.doorOpen = any([cp.vl["DOORS_STATUS"]["DOOR_OPEN_FL"], cp.vl["DOORS_STATUS"]["DOOR_OPEN_FR"],
                           cp.vl["DOORS_STATUS"]["DOOR_OPEN_RL"], cp.vl["DOORS_STATUS"]["DOOR_OPEN_RR"]])
     ret.seatbeltUnlatched = bool(cp.vl["SEATBELT_STATUS"]["SEATBELT_DRIVER_LAMP"] or not cp.vl["SEATBELT_STATUS"]["SEATBELT_DRIVER_LATCHED"])
+
+    # dp - add lead distance to accord, accord h, insight
+    if self.CP.carFingerprint in (CAR.ACCORD, CAR.ACCORDH, CAR.INSIGHT):
+      ret.lead_distance = cp.vl["RADAR_HUD"]["LEAD_DISTANCE"]
 
     steer_status = self.steer_status_values[cp.vl["STEER_STATUS"]["STEER_STATUS"]]
     ret.steerError = steer_status not in ["NORMAL", "NO_TORQUE_ALERT_1", "NO_TORQUE_ALERT_2", "LOW_SPEED_LOCKOUT", "TMP_FAULT"]

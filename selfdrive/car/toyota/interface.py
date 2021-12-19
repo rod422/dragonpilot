@@ -182,7 +182,7 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.safetyConfigs[0].safetyParam = 73
       ret.wheelbase = 2.68986
-      ret.steerRatio = 14.4
+      ret.steerRatio = 14.3
       tire_stiffness_factor = 0.7933
       ret.mass = 3585. * CV.LB_TO_KG + STD_CARGO_KG # Average between ICE and Hybrid
       ret.lateralTuning.init('indi')
@@ -390,8 +390,8 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
       ret.longitudinalTuning.kpV = [1.3, 1.0, 0.7]
       ret.longitudinalTuning.kiBP = [0., 5., 12., 20., 27.]
-      ret.longitudinalTuning.kiV = [.35, .23, .20, .17, .1]
-      ret.stoppingDecelRate = 0.07  # reach stopping target smoothly
+      ret.longitudinalTuning.kiV = [.32, .32, .32, .32, .26]
+      ret.stoppingDecelRate = 0.04  # reach stopping target smoothly
       ret.startingAccelRate = 20.0  # release brakes fast
     else:
       # Default longitudinal tune
