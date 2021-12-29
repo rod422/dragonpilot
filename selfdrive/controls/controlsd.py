@@ -284,11 +284,11 @@ class Controls:
 
     if not self.sm['lateralPlan'].mpcSolutionValid:
       self.events.add(EventName.steerTempUnavailable if self.sm['dragonConf'].dpAtl else EventName.plannerError)
-    if not self.dp_jetson and not self.sm['liveLocationKalman'].sensorsOK and not NOSENSOR:
-      if self.sm.frame > 5 / DT_CTRL:  # Give locationd some time to receive all the inputs
-        self.events.add(EventName.sensorDataInvalid)
-    if not self.dp_jetson and not self.sm['liveLocationKalman'].posenetOK:
-      self.events.add(EventName.posenetInvalid)
+    #if not self.sm['liveLocationKalman'].sensorsOK and not NOSENSOR:
+    #  if self.sm.frame > 5 / DT_CTRL:  # Give locationd some time to receive all the inputs
+    #    self.events.add(EventName.sensorDataInvalid)
+    #if not self.sm['liveLocationKalman'].posenetOK:
+    #  self.events.add(EventName.posenetInvalid)
     if not self.sm['liveLocationKalman'].deviceStable:
       self.events.add(EventName.deviceFalling)
     if log.PandaState.FaultType.relayMalfunction in self.sm['pandaState'].faults:
