@@ -330,21 +330,11 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.safetyConfigs[0].safetyParam = 73
       ret.wheelbase = 2.78
-      ret.steerRatio = 17.8
+      ret.steerRatio = 17.6
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.init('indi')
-      ret.lateralTuning.indi.innerLoopGainBP = [10, 13.7, 13.71, 20]
-      ret.lateralTuning.indi.innerLoopGainV = [3.625, 4.6, 12, 15]
-      ret.lateralTuning.indi.outerLoopGainBP = [10, 13.7, 13.71, 20]
-      ret.lateralTuning.indi.outerLoopGainV = [3.0, 3.625, 10.75, 14.99]
-      ret.lateralTuning.indi.timeConstantBP = [10, 15, 18, 24, 30]
-      ret.lateralTuning.indi.timeConstantV = [0.4, 0.4, 0.8, 1.8, 2.2]
-      ret.lateralTuning.indi.actuatorEffectivenessBP = [10, 13.7, 13.71, 20]
-      ret.lateralTuning.indi.actuatorEffectivenessV = [1.0, 1.5, 15, 15]
-      ret.steerActuatorDelay = 0
-      ret.steerRateCost = 0.4
-      ret.steerLimitTimer = 1 
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.19], [0.02]]
+      ret.lateralTuning.pid.kf = 0.00007818594
 
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
