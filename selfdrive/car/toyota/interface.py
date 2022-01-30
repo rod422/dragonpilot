@@ -146,10 +146,13 @@ class CarInterface(CarInterfaceBase):
     elif candidate in [CAR.RAV4_TSS2, CAR.RAV4H_TSS2]:
       stop_and_go = True
       ret.wheelbase = 2.68986
-      ret.steerRatio = 14.3
+      ret.steerRatio = 14.35
       tire_stiffness_factor = 0.7933
       ret.mass = 3585. * CV.LB_TO_KG + STD_CARGO_KG  # Average between ICE and Hybrid
-      set_lat_tune(ret.lateralTuning, LatTunes.PID_D)
+      set_lat_tune(ret.lateralTuning, LatTunes.INDI_RAV4_TSS2)
+      ret.steerActuatorDelay = 0
+      ret.steerRateCost = 0.4
+      ret.steerLimitTimer = 1 
 
       # 2019+ Rav4 TSS2 uses two different steering racks and specific tuning seems to be necessary.
       # See https://github.com/commaai/openpilot/pull/21429#issuecomment-873652891
@@ -252,6 +255,14 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 4305. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_J)
 
+    elif candidate == CAR.PRIUS_ALPHA:
+      stop_and_go = True
+      ret.wheelbase = 2.78
+      ret.steerRatio = 17.4
+      tire_stiffness_factor = 0.5533
+      ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
+      set_lat_tune(ret.lateralTuning, LatTunes.LQR_RAV4)
+
     # dp
     elif candidate == CAR.LEXUS_ISH:
       stop_and_go = True
@@ -260,15 +271,6 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 13.3
       tire_stiffness_factor = 0.444
       ret.mass = 3736.8 * CV.LB_TO_KG + STD_CARGO_KG
-      set_lat_tune(ret.lateralTuning, LatTunes.PID_L)
-
-    elif candidate in [CAR.PRIUS_ALPHA]:
-      stop_and_go = False
-      ret.safetyConfigs[0].safetyParam = 73
-      ret.wheelbase = 2.78
-      ret.steerRatio = 18
-      tire_stiffness_factor = 0.5533
-      ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_L)
 
     elif candidate == CAR.LEXUS_GSH:
