@@ -256,8 +256,9 @@ class CarInterface(CarInterfaceBase):
       set_lat_tune(ret.lateralTuning, LatTunes.PID_J)
 
     elif candidate == CAR.PRIUS_ALPHA:
+      ret.safetyConfigs[0].safetyParam = 118
       stop_and_go = True
-      ret.wheelbase = 2.78
+      ret.wheelbase = 2.78ret.safetyConfigs[0].safetyParam = 77
       ret.steerRatio = 17.4
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
