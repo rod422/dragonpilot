@@ -320,7 +320,7 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.safetyParam = 118
       ret.wheelbase = 2.78
-      ret.steerRatio = 17.8
+      ret.steerRatio = 17.4
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
       ret.lateralTuning.init('lqr')
