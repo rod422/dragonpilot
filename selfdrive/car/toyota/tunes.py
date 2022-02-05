@@ -98,8 +98,8 @@ def set_lat_tune(tune, name):
 
   elif name == LatTunes.LQR_PA:
     tune.init('lqr')
-    tune.lqr.scale = 1500.0
-    tune.lqr.ki = 0.03
+    tune.lqr.scale = 1600.0
+    tune.lqr.ki = 0.028
     tune.lqr.a = [0., 1., -0.22619643, 1.21822268]
     tune.lqr.b = [-1.92006585e-04, 3.95603032e-05]
     tune.lqr.c = [1., 0.]
