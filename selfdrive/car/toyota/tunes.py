@@ -25,6 +25,8 @@ class LatTunes(Enum):
   PID_M = 14
   PID_N = 15
   INDI_PRIUS_TSS2 = 16
+  LQR_PA = 17
+  INDI_RAV4_TSS2 = 18
 
 ###### LONG ######
 def set_long_tune(tune, name):
@@ -34,8 +36,8 @@ def set_long_tune(tune, name):
     tune.deadzoneV = [.0, .14]
     tune.kpBP = [0., 5., 20.]
     tune.kpV = [1.3, 1.0, 0.7]
-    tune.kiBP = [0., 5., 12., 20., 27.]
-    tune.kiV = [.35, .23, .20, .17, .1]
+    tune.kiBP = [0., 3., 5., 12., 20., 27.]
+    tune.kiV = [.34, .32, .3, .23, .17, .02]
   # Default longitudinal tune
   elif name == LongTunes.TSS:
     tune.deadzoneBP = [0., 9.]
@@ -63,14 +65,27 @@ def set_lat_tune(tune, name):
 
   elif name == LatTunes.INDI_PRIUS_TSS2:
     tune.init('indi')
-    tune.indi.innerLoopGainBP = [20, 24, 30]
-    tune.indi.innerLoopGainV = [7.25, 7.5, 9]
-    tune.indi.outerLoopGainBP = [20, 24, 30]
-    tune.indi.outerLoopGainV = [6, 7.25, 6]
-    tune.indi.timeConstantBP = [20, 24]
-    tune.indi.timeConstantV = [2.0, 2.2]
-    tune.indi.actuatorEffectivenessBP = [20, 24]
+    tune.indi.innerLoopGainBP = [5, 11.1, 16, 20, 30]
+    tune.indi.innerLoopGainV = [6, 11.6, 13, 15, 15]
+    tune.indi.outerLoopGainBP = [5, 11.1, 16, 20, 30]
+    tune.indi.outerLoopGainV = [5.67, 11.37, 12.7, 14.78, 14.98]
+    tune.indi.actuatorEffectivenessBP = [20, 30]
     tune.indi.actuatorEffectivenessV = [2, 3]
+    tune.indi.timeConstantBP = [4.15, 8.3, 11.1, 13.9, 16.7, 20, 25, 30]
+    tune.indi.timeConstantV = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.2, 1.8]
+
+  elif name == LatTunes.INDI_RAV4_TSS2:
+    tune.init('indi')
+    tune.indi.innerLoopGainBP = [1, 5, 11.1, 16, 20, 30]
+    tune.indi.innerLoopGainV = [2, 6, 11.6, 13, 15, 15]
+    tune.indi.outerLoopGainBP = [1, 5, 11.1, 16, 20, 30]
+    tune.indi.outerLoopGainV = [1.6, 5.65, 11.35, 12.65, 14.73, 14.98]
+    tune.indi.timeConstantBP = [1, 15, 20, 30]
+    tune.indi.timeConstantV = [0.1, 0.45, 0.8, 1.6]
+    tune.indi.actuatorEffectivenessBP = [1, 20, 30]
+    tune.indi.actuatorEffectivenessV = [2, 12, 15]
+    #tune.indi.timeConstantBP = [4.15, 8.3, 11.1, 13.9, 16.7, 20, 25, 30]
+    #tune.indi.timeConstantV = [0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 1.2, 1.8]
 
   elif name == LatTunes.LQR_RAV4:
     tune.init('lqr')
@@ -82,6 +97,17 @@ def set_lat_tune(tune, name):
     tune.lqr.k = [-110.73572306, 451.22718255]
     tune.lqr.l = [0.3233671, 0.3185757]
     tune.lqr.dcGain = 0.002237852961363602
+
+  elif name == LatTunes.LQR_PA:
+    tune.init('lqr')
+    tune.lqr.scale = 1650.0
+    tune.lqr.ki = 0.028
+    tune.lqr.a = [0., 1., -0.22619643, 1.21822268]
+    tune.lqr.b = [-1.92006585e-04, 3.95603032e-05]
+    tune.lqr.c = [1., 0.]
+    tune.lqr.k = [-110.73572306, 451.22718255]
+    tune.lqr.l = [0.3233671, 0.3185757]
+    tune.lqr.dcGain = 0.0028
 
   elif 'PID' in str(name):
     tune.init('pid')
