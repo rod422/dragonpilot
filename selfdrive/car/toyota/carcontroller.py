@@ -22,7 +22,6 @@ class CarController():
 
     self.last_steer = 0
     self.alert_active = False
-    self.last_standstill = False
     self.standstill_req = False
     self.steer_rate_limited = False
     self.CP = CP
@@ -30,7 +29,7 @@ class CarController():
     self.permit_braking = True
     self.last_gas_press_frame = 0
     self.last_standstill_frame = 0
-    self.last_zero_speed_frame = 0
+    self.last_off_frame = 0
 
     self.packer = CANPacker(dbc_name)
 
@@ -75,11 +74,10 @@ class CarController():
     if not enabled and CS.pcm_acc_status:
       pcm_cancel_cmd = 1
 
-    # on entering standstill, send standstill request
-    if not dragonconf.dpToyotaSng and CS.out.standstill and not self.last_standstill and CS.CP.carFingerprint not in NO_STOP_TIMER_CAR:
+    # resume request, this is flipped, TODO: FIXME
+    if actuators.accel <= - 0.8 and not dragonconf.dpToyotaSng and CS.out.standstill and CS.CP.carFingerprint not in NO_STOP_TIMER_CAR:
       self.standstill_req = True
-    if CS.pcm_acc_status != 8:
-      # pcm entered standstill or it's disabled
+    else:
       self.standstill_req = False
 
     # dp
@@ -95,7 +93,6 @@ class CarController():
     self.last_blinker_on = blinker_on
 
     self.last_steer = apply_steer
-    self.last_standstill = CS.out.standstill
 
     can_sends = []
 
@@ -130,12 +127,12 @@ class CarController():
       # record accelerator depression frame
       if CS.out.gasPressed:
         self.last_gas_press_frame = frame
-      # record standstill exit frame
+      # record last frame when vego is 0
       if CS.pcm_acc_status == 7:
         self.last_standstill_frame = frame
-      # record last frame when vego is 0
-      if CS.out.vEgo == 0:
-        self.last_zero_speed_frame = frame
+      # record disengaged frame
+      if not enabled:
+        self.last_off_frame = frame
       # accelerator depression logic - note by cydia2020
       # openpilot should not apply any brakes when the accelerator is depressed
       # this allows the car's pcm to smoothly apply the brakes by first requesting < 0 acceleration
@@ -149,9 +146,7 @@ class CarController():
       # stop and go performance. This hack mitigates that by setting permit braking to 0 for
       # 2 seconds after the car goes out of standstill, the actuator condition prevents the car
       # from coasting forward if the driver accidently touches the resume button
-      if (CS.out.gasPressed or 1. / DT_CTRL > (frame - self.last_gas_press_frame)) \
-         or ((actuators.accel > - 1.95) and (2. / DT_CTRL > (frame - self.last_standstill_frame))) \
-         or (2. / DT_CTRL > (frame - self.last_zero_speed_frame)):
+      if (CS.out.gasPressed or 1. / DT_CTRL > (frame - self.last_gas_press_frame)) or (1. / DT_CTRL > (frame - self.last_off_frame)) or (2. / DT_CTRL > (frame - self.last_standstill_frame)):
         self.permit_braking = False
       else:
         self.permit_braking = True
