@@ -19,14 +19,3 @@ if [ -z "$PASSIVE" ]; then
 fi
 
 export STAGING_ROOT="/data/safe_staging"
-
-echo -n 0 > /data/params/d/dp_atl
-echo -n 0 > /data/params/d/dp_atl_op_long
-echo -n 0 > /data/params/d_tmp/dp_atl
-echo -n 0 > /data/params/d_tmp/dp_atl_op_long
-rm -fr /data/media/0/dp_patcher.py
-echo -n 1 > /data/params/d_tmp/dp_atl
-echo -n 1 > /data/params/d_tmp/dp_atl_op_long
-rm -fr launch_env.sh
-mv launch_env.sh.bak launch_env.sh
-chmod 777 launch_env.sh

@@ -1,3 +1,7 @@
+dragonpilot 0.8.12-4
+========================
+* Fixed bins for C3.
+
 dragonpilot 0.8.12-3
 ========================
 * Bug fixes.
