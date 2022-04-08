@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from cereal import car
+from common.numpy_fast import interp
 from selfdrive.config import Conversions as CV
 from selfdrive.car.toyota.tunes import LatTunes, LongTunes, set_long_tune, set_lat_tune
 from selfdrive.car.toyota.values import Ecu, CAR, ToyotaFlags, TSS2_CAR, NO_DSU_CAR, MIN_ACC_SPEED, EPS_SCALE, EV_HYBRID_CAR, CarControllerParams
@@ -20,7 +21,13 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
+    if CP.carFingerprint in TSS2_CAR:
+      # Allow for higher accel from PID controller at low speeds
+      return CarControllerParams.ACCEL_MIN, interp(current_speed,
+                                                   CarControllerParams.ACCEL_MAX_TSS2_BP,
+                                                   CarControllerParams.ACCEL_MAX_TSS2_VALS)
+    else:
+      return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[]):  # pylint: disable=dangerous-default-value
@@ -49,10 +56,10 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PRIUS_V:
       stop_and_go = True
       ret.wheelbase = 2.78
-      ret.steerRatio = 17.4
+      ret.steerRatio = 18.1
       tire_stiffness_factor = 0.5533
       ret.mass = 4387. * CV.LB_TO_KG + STD_CARGO_KG
-      set_lat_tune(ret.lateralTuning, LatTunes.LQR_RAV4)
+      set_lat_tune(ret.lateralTuning, LatTunes.LQR_PV)
 
     elif candidate in (CAR.RAV4, CAR.RAV4H):
       stop_and_go = True if (candidate in CAR.RAV4H) else False
@@ -252,13 +259,13 @@ class CarInterface(CarInterfaceBase):
 
     ret.enableBsm = 0x3F6 in fingerprint[0] and candidate in TSS2_CAR
     # Detect smartDSU, which intercepts ACC_CMD from the DSU allowing openpilot to send it
-    smartDsu = 0x2FF in fingerprint[0]
+    ret.smartDsu = 0x2FF in fingerprint[0]
     # In TSS2 cars the camera does long control
     found_ecus = [fw.ecu for fw in car_fw]
-    ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR) and (not smartDsu)
+    ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR) and (not ret.smartDsu)
     ret.enableGasInterceptor = 0x201 in fingerprint[0]
     # if the smartDSU is detected, openpilot can send ACC_CMD (and the smartDSU will block it from the DSU) or not (the DSU is "connected")
-    ret.openpilotLongitudinalControl = smartDsu or ret.enableDsu or candidate in TSS2_CAR
+    ret.openpilotLongitudinalControl = ret.smartDsu or ret.enableDsu or candidate in TSS2_CAR
     if Params().get_bool('dp_atl') and not Params().get_bool('dp_atl_op_long'):
       ret.openpilotLongitudinalControl = False
 
@@ -277,10 +284,12 @@ class CarInterface(CarInterfaceBase):
       set_long_tune(ret.longitudinalTuning, LongTunes.PEDAL)
     elif candidate in TSS2_CAR:
       set_long_tune(ret.longitudinalTuning, LongTunes.TSS2)
+      # Improved longitudinal tune settings from sshane
       ret.vEgoStopping = 0.2  # car is near 0.1 to 0.2 when car starts requesting stopping accel
       ret.vEgoStarting = 0.2  # needs to be > or == vEgoStopping
-      ret.stopAccel = -2.0  # Toyota requests -0.4 when stopped
-      ret.stoppingDecelRate = 0.8  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
+      ret.stoppingDecelRate = 0.4  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
+      ret.longitudinalActuatorDelayLowerBound = 0.3
+      ret.longitudinalActuatorDelayUpperBound = 0.3
     else:
       set_long_tune(ret.longitudinalTuning, LongTunes.TSS)
 

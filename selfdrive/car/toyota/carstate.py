@@ -45,7 +45,7 @@ class CarState(CarStateBase):
     # dp
     #self.read_distance_lines = 0
     #self.read_distance_lines_init = False
-    #self.distance = 0
+    self.distance = 0
     #self.read_lkas_btn = 0
     #self.read_lkas_btn_init = False
 
@@ -66,7 +66,7 @@ class CarState(CarStateBase):
     ret.seatbeltUnlatched = cp.vl["BODY_CONTROL_STATE"]["SEATBELT_DRIVER_UNLATCHED"] != 0
 
     ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
-    ret.brakeHoldActive = cp.vl["ESP_CONTROL"]["BRAKE_HOLD_ACTIVE"] == 1
+    #ret.brakeHoldActive = cp.vl["ESP_CONTROL"]["BRAKE_HOLD_ACTIVE"] == 1
     ret.brakeLights = bool(cp.vl["ESP_CONTROL"]['BRAKE_LIGHTS_ACC'] or cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0)
     if self.CP.enableGasInterceptor:
       ret.gas = (cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
@@ -206,7 +206,10 @@ class CarState(CarStateBase):
 
     # dp
     # distance button
-    self.distance = 1 if cp_cam.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
+    if self.CP.carFingerprint in TSS2_CAR:
+      self.distance = 1 if cp_cam.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
+    elif self.CP.smartDsu:
+      self.distance = 1 if cp.vl["SDSU"]["FD_BUTTON"] == 1 else 0
     ret.distanceLines = cp.vl["PCM_CRUISE_SM"]["DISTANCE_LINES"]
     self._update_traffic_signals(cp_cam)
     ret.cruiseState.speedLimit = self._calculate_speed_limit()
@@ -313,7 +316,7 @@ class CarState(CarStateBase):
       ("DOOR_OPEN_RR", "BODY_CONTROL_STATE"),
       ("SEATBELT_DRIVER_UNLATCHED", "BODY_CONTROL_STATE"),
       ("TC_DISABLED", "ESP_CONTROL"),
-      ("BRAKE_HOLD_ACTIVE", "ESP_CONTROL"),
+      #("BRAKE_HOLD_ACTIVE", "ESP_CONTROL"),
       ("STEER_FRACTION", "STEER_ANGLE_SENSOR"),
       ("STEER_RATE", "STEER_ANGLE_SENSOR"),
       ("CRUISE_ACTIVE", "PCM_CRUISE"),
@@ -399,6 +402,12 @@ class CarState(CarStateBase):
 
     if Params().get('dp_toyota_zss') == b'1':
       signals += [("ZORRO_STEER", "SECONDARY_STEER_ANGLE")]
+
+    # KRKeegan - Add support for toyota distance button
+    if CP.smartDsu:
+      signals.append(("FD_BUTTON", "SDSU", 0))
+      checks.append(("SDSU", 33))
+
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
 
