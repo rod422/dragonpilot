@@ -29,7 +29,6 @@ class CarController():
     self.permit_braking = True
     self.last_gas_press_frame = 0
     self.last_standstill_frame = 0
-    self.last_off_frame = 0
 
     self.packer = CANPacker(dbc_name)
     self.gas = 0
@@ -77,7 +76,7 @@ class CarController():
     # on entering standstill, send standstill request
     if not dragonconf.dpToyotaSng and CS.out.standstill and not self.last_standstill and CS.CP.carFingerprint not in NO_STOP_TIMER_CAR:
       self.standstill_req = True
-    if CS.pcm_acc_status != 8:
+    if dragonconf.dpToyotaSng and CS.pcm_acc_status != 8:
       # pcm entered standstill or it's disabled
       self.standstill_req = False
 
@@ -125,10 +124,14 @@ class CarController():
         pass
 
       # handle permit braking logic
-      # record disengaged frame
-      if not enabled:
-        self.last_off_frame = frame
-      if 1. / DT_CTRL > frame - self.last_off_frame:
+      # record accelerator depression frame
+      if CS.out.gasPressed:
+        self.last_gas_press_frame = frame
+      # record standstill exit frame
+      if CS.pcm_acc_status == 7:
+        self.last_standstill_frame = frame
+      # set permit braking to false briefly after accelerator release
+      if (CS.out.gasPressed or 1.0 / DT_CTRL > (frame - self.last_gas_press_frame)) or (2.0 / DT_CTRL > (frame - self.last_standstill_frame)):
         self.permit_braking = False
       else:
         self.permit_braking = True
