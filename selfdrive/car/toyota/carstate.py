@@ -66,7 +66,7 @@ class CarState(CarStateBase):
     ret.seatbeltUnlatched = cp.vl["BODY_CONTROL_STATE"]["SEATBELT_DRIVER_UNLATCHED"] != 0
 
     ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
-    #ret.brakeHoldActive = cp.vl["ESP_CONTROL"]["BRAKE_HOLD_ACTIVE"] == 1
+    ret.brakeHoldActive = cp.vl["ESP_CONTROL"]["BRAKE_HOLD_ACTIVE"] == 1
     ret.brakeLights = bool(cp.vl["ESP_CONTROL"]['BRAKE_LIGHTS_ACC'] or cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0)
     if self.CP.enableGasInterceptor:
       ret.gas = (cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
@@ -116,13 +116,18 @@ class CarState(CarStateBase):
       if self.CP.carFingerprint in TSS2_CAR:
         sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON']
         econ_on = cp.vl["GEAR_PACKET"]['ECON_ON']
-      if self.CP.carFingerprint == CAR.RAV4_TSS2:
-        sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON_2']
       else:
         try:
-          sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON']
+          econ_on = cp.vl["GEAR_PACKET"]['ECON_ON']
         except KeyError:
-          sport_on = 0
+          econ_on = 0
+        if self.CP.carFingerprint == CAR.RAV4_TSS2:
+          sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON_2']
+        else:
+          try:
+            sport_on = cp.vl["GEAR_PACKET"]['SPORT_ON']
+          except KeyError:
+            sport_on = 0
       if sport_on == 0 and econ_on == 0:
         self.dp_accel_profile = DP_ACCEL_NORMAL
       elif sport_on == 1:
@@ -316,7 +321,7 @@ class CarState(CarStateBase):
       ("DOOR_OPEN_RR", "BODY_CONTROL_STATE"),
       ("SEATBELT_DRIVER_UNLATCHED", "BODY_CONTROL_STATE"),
       ("TC_DISABLED", "ESP_CONTROL"),
-      #("BRAKE_HOLD_ACTIVE", "ESP_CONTROL"),
+      ("BRAKE_HOLD_ACTIVE", "ESP_CONTROL"),
       ("STEER_FRACTION", "STEER_ANGLE_SENSOR"),
       ("STEER_RATE", "STEER_ANGLE_SENSOR"),
       ("CRUISE_ACTIVE", "PCM_CRUISE"),
