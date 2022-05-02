@@ -1,4 +1,5 @@
 from cereal import car
+from common.realtime import DT_CTRL
 from common.numpy_fast import clip, interp
 from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_interceptor_command, make_can_msg
 from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_command, \
@@ -6,6 +7,7 @@ from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_comma
                                            create_fcw_command, create_lta_steer_command
 from selfdrive.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR, TSS2_CAR, \
                                         MIN_ACC_SPEED, PEDAL_TRANSITION, CarControllerParams
+from selfdrive.car.toyota.interface import CarInterface
 from opendbc.can.packer import CANPacker
 from common.dp_common import common_controller_ctrl
 
@@ -19,14 +21,16 @@ class CarController():
     # dp
     self.last_blinker_on = False
     self.blinker_end_frame = 0.
-
+    self.rate_limit_counter = 0
     self.last_steer = 0
     self.alert_active = False
     self.last_standstill = False
     self.standstill_req = False
     self.steer_rate_limited = False
-
-    self.rate_limit_counter = 0
+    self.CP = CP
+    self.permit_braking = True
+    self.last_gas_press_frame = 0
+    self.last_standstill_frame = 0
 
     self.packer = CANPacker(dbc_name)
     self.gas = 0
@@ -51,7 +55,8 @@ class CarController():
       interceptor_gas_cmd = clip(pedal_command, 0., MAX_INTERCEPTOR_GAS)
     else:
       interceptor_gas_cmd = 0.
-    pcm_accel_cmd = clip(actuators.accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
+    pid_accel_limits = CarInterface.get_pid_accel_limits(self.CP, CS.out.vEgo, None)  # Need to get cruise speed from somewhere
+    pcm_accel_cmd = clip(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
 
     # steer torque
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
@@ -101,7 +106,6 @@ class CarController():
     self.last_blinker_on = blinker_on
 
     self.last_steer = apply_steer
-    self.last_standstill = CS.out.standstill
 
     can_sends = []
 
@@ -129,16 +133,29 @@ class CarController():
     if (frame % 3 == 0 and CS.CP.openpilotLongitudinalControl) or pcm_cancel_cmd:
       lead = lead or CS.out.vEgo < 12.    # at low speed we always assume the lead is present so ACC can be engaged
 
+      # handle permit braking logic
+      # record accelerator depression frame
+      if CS.out.gasPressed:
+        self.last_gas_press_frame = frame
+      # record standstill exit frame
+      if CS.pcm_acc_status == 7:
+        self.last_standstill_frame = frame
+      # set permit braking to false briefly after accelerator release
+      if (CS.out.gasPressed or 1.0 / DT_CTRL > (frame - self.last_gas_press_frame)) or (2.0 / DT_CTRL > (frame - self.last_standstill_frame)):
+        self.permit_braking = False
+      else:
+        self.permit_braking = True
+
       if dragonconf.dpAtl and not dragonconf.dpAtlOpLong:
         pass
       # Lexus IS uses a different cancellation message
-      if pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
+      elif pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
       elif CS.CP.openpilotLongitudinalControl:
-        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.distance))
+        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, self.permit_braking, CS.distance))
         self.accel = pcm_accel_cmd
       else:
-        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, CS.distance))
+        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, True, CS.distance))
 
     if frame % 2 == 0 and CS.CP.enableGasInterceptor and CS.CP.openpilotLongitudinalControl:
       # send exactly zero if gas cmd is zero. Interceptor will send the max between read value and gas cmd.

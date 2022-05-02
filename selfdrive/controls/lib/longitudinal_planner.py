@@ -21,8 +21,8 @@ from selfdrive.swaglog import cloudlog
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
-A_CRUISE_MAX_VALS = [1.2, 1.2, 0.8, 0.6]
-A_CRUISE_MAX_BP = [0., 15., 25., 40.]
+A_CRUISE_MAX_VALS = [1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+A_CRUISE_MAX_BP = [0., 10., 25., 40.]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -45,9 +45,9 @@ _DP_CRUISE_MIN_V_ECO = [-0.01, -0.1, -0.2, -0.3 -0.4, -0.2, -0.09]
 _DP_CRUISE_MIN_V_SPORT = [-0.1, -0.2, -0.4, -0.5, -0.5, -0.25, -0.1]
 _DP_CRUISE_MIN_BP = [0.0, 3.0, 5.0, 20.0, 33.3, 40.0, 55.0]
 
-_DP_CRUISE_MAX_V = [3.5, 1.7, 1.31, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
-_DP_CRUISE_MAX_V_ECO = [3.5, 1.65, 1.25, 0.85, 0.65, 0.55, 0.45, 0.42, 0.24, 0.09]
-_DP_CRUISE_MAX_V_SPORT = [3.5, 3.5, 2.5, 1.5, 2.0, 2.0, 2.0, 1.5, 1.0, 0.5]
+_DP_CRUISE_MAX_V = [1.4, 1.4, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
+_DP_CRUISE_MAX_V_ECO = [1.2, 1.2, 1.1, 0.85, 0.65, 0.55, 0.45, 0.42, 0.24, 0.09]
+_DP_CRUISE_MAX_V_SPORT = [1.6, 1.6, 2.0, 1.5, 2.0, 2.0, 2.0, 1.5, 1.0, 0.5]
 _DP_CRUISE_MAX_BP = [0., 3, 6., 8., 11., 15., 20., 25., 30., 55.]
 
 def dp_calc_cruise_accel_limits(v_ego, dp_profile):
@@ -106,7 +106,6 @@ class Planner:
 
   def update(self, sm):
     v_ego = sm['carState'].vEgo
-    a_ego = sm['carState'].aEgo
     # dp
     self.dp_accel_profile_ctrl = sm['dragonConf'].dpAccelProfileCtrl
     self.dp_accel_profile = sm['dragonConf'].dpAccelProfile
@@ -121,19 +120,21 @@ class Planner:
     long_control_state = sm['controlsState'].longControlState
     force_slow_decel = sm['controlsState'].forceDecel
 
-    prev_accel_constraint = True
-    disabled = long_control_state == LongCtrlState.off or sm['carState'].gasPressed
-    if disabled:
+    # Reset current state when not engaged, or user is controlling the speed
+    reset_state = long_control_state == LongCtrlState.off
+
+    # No change cost when user is controlling the speed, or when standstill
+    prev_accel_constraint = not (reset_state or sm['carState'].standstill)
+
+    if reset_state:
       self.v_desired_filter.x = v_ego
-      self.a_desired = a_ego
-      # Smoothly changing between accel trajectory is only relevant when OP is driving
-      prev_accel_constraint = False
+      self.a_desired = 0.0
 
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))
 
     # Get acceleration and active solutions for custom long mpc.
-    self.cruise_source, a_min_sol, v_cruise_sol = self.cruise_solutions(not disabled, self.v_desired_filter.x,
+    self.cruise_source, a_min_sol, v_cruise_sol = self.cruise_solutions(not reset_state, self.v_desired_filter.x,
                                                                         self.a_desired, v_cruise, sm)
 
 
@@ -150,9 +151,10 @@ class Planner:
     # clip limits, cannot init MPC outside of bounds
     accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05, a_min_sol)
     accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
+
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise_sol, prev_accel_constraint=prev_accel_constraint)
+    self.mpc.update(sm['carState'], sm['radarState'], v_cruise_sol, prev_accel_constraint)
     #self.mpc.set_desired_TR(DP_FOLLOWING_DIST[self.dp_following_profile])
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
