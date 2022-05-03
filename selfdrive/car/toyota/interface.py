@@ -56,7 +56,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PRIUS_V:
       stop_and_go = True
       ret.wheelbase = 2.78
-      ret.steerRatio = 18.2
+      ret.steerRatio = 18.1
       tire_stiffness_factor = 0.5533
       ret.mass = 3681. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.LQR_PV)
