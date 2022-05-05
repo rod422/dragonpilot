@@ -61,11 +61,7 @@ class CarController():
     self.steer_rate_limited = new_steer != apply_steer
 
     # Cut steering while we're in a known fault state (2s)
-    # EPS_STATUS->LKA_STATE either goes to 21 or 25 on rising edge of a steering fault and
-    # the value seems to describe how many frames the steering rate was above 100 deg/s, so
-    # cut torque with some margin for the lower state
-    if not active:
-    #if not active or CS.steer_state in (9, 25) or abs(CS.out.steeringRateDeg) > 100 or (abs(CS.out.steeringAngleDeg) > 150 and CS.CP.carFingerprint in [CAR.RAV4H, CAR.PRIUS]):
+    if not active or CS.steer_state in (9, 25) or abs(CS.out.steeringRateDeg) > 100 or (abs(CS.out.steeringAngleDeg) > 150 and CS.CP.carFingerprint in [CAR.RAV4H, CAR.PRIUS]):
       apply_steer = 0
       apply_steer_req = 0
     else:

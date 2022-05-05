@@ -167,10 +167,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["STEER_TORQUE_SENSOR"]["STEER_TORQUE_EPS"] * self.eps_torque_scale
     # we could use the override bit from dbc, but it's triggered at too high torque values
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
-    # steer rate fault, goes to 21 or 25 for 1 frame, then 9 for ~2 seconds
-    ret.steerWarning = cp.vl["EPS_STATUS"]["LKA_STATE"] in (0, 9, 21, 25)
-    # 17 is a fault from a prolonged high torque delta between cmd and user
-    ret.steerWarning = cp.vl["EPS_STATUS"]["LKA_STATE"] == 17
+    ret.steerWarning = cp.vl["EPS_STATUS"]["LKA_STATE"] not in (1, 5)
 
     if self.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC, CAR.LEXUS_ISH, CAR.LEXUS_GSH, CAR.LEXUS_NXT):
       ret.cruiseState.available = cp.vl["DSU_CRUISE"]["MAIN_ON"] != 0
@@ -206,7 +203,7 @@ class CarState(CarStateBase):
 
     ret.espDisabled = cp.vl["ESP_CONTROL"]["TC_DISABLED"] != 0
     # 2 is standby, 10 is active. TODO: check that everything else is really a faulty state
-    #self.steer_state = cp.vl["EPS_STATUS"]["LKA_STATE"]
+    self.steer_state = cp.vl["EPS_STATUS"]["LKA_STATE"]
 
     if self.CP.enableBsm:
       ret.leftBlindspot = (cp.vl["BSM"]["L_ADJACENT"] == 1) or (cp.vl["BSM"]["L_APPROACHING"] == 1)
