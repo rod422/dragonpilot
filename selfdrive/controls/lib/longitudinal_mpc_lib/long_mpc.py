@@ -49,9 +49,9 @@ T_IDXS_LST = [index_function(idx, max_val=MAX_T, max_idx=N+1) for idx in range(N
 T_IDXS = np.array(T_IDXS_LST)
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -3.5
-T_FOLLOW = 1.8
+T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 6
+STOP_DISTANCE = 5.5
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
@@ -233,7 +233,7 @@ class LongitudinalMpc:
     self.x0 = np.zeros(X_DIM)
     self.set_weights()
 
-  def set_weights(self, v_lead0=0, v_lead1=0, prev_accel_constraint=True):
+  def set_weights(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
     if self.e2e:
       self.set_weights_for_xva_policy()
       self.params[:,0] = -10.
@@ -245,7 +245,7 @@ class LongitudinalMpc:
   def get_cost_multipliers(self, v_lead0, v_lead1):
     v_ego = self.x0[1]
     v_ego_bps = [0, 10]
-    TFs = [1.0, 1.45, T_FOLLOW]
+    TFs = [1.0, 1.45, 1.8]
     # KRKeegan adjustments to costs for different TFs
     # these were calculated using the test_longitudial.py deceleration tests
     a_change_tf = interp(self.desired_TF, TFs, [.1, .8, 1.])
@@ -341,26 +341,29 @@ class LongitudinalMpc:
     self.cruise_max_a = max_a
 
   def update_TF(self, carstate):
-    if carstate.distanceLines == 1: # Traffic
+    if carstate.distanceLines == 1: # No Cut In
       self.desired_TF = 1.0
-      self.desired_stop_distance = STOP_DISTANCE - 2
+      self.desired_stop_distance = STOP_DISTANCE - 1.5
     elif carstate.distanceLines == 2: # Relaxed
-      self.desired_TF = 1.45
-      self.desired_stop_distance = STOP_DISTANCE - 0.5
+      self.desired_TF = T_FOLLOW
+      self.desired_stop_distance = STOP_DISTANCE
+
+    elif carstate.distanceLines == 3: # Let You Cut In
+      self.desired_TF = 1.8
+      self.desired_stop_distance = STOP_DISTANCE + 0.5
+
     else:
       self.desired_TF = T_FOLLOW
       self.desired_stop_distance = STOP_DISTANCE
 
-  def update(self, carstate, radarstate, v_cruise, prev_accel_constraint=True):
-    self.update_TF(carstate)
-
+  def update(self, carstate, radarstate, v_cruise, prev_accel_constraint):
     v_ego = self.x0[1]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
-    # Use the processed leads which always have a velocity
+    self.update_TF(carstate)
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
     # set accel limits in params
