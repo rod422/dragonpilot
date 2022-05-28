@@ -81,8 +81,9 @@ class CarController():
     #if not active or CS.steer_state in (9, 25) or abs(CS.out.steeringRateDeg) > 100 or (abs(CS.out.steeringAngleDeg) > 150 and CS.CP.carFingerprint in [CAR.RAV4H, CAR.PRIUS]):
       apply_steer = 0
       apply_steer_req = 0
-    else:
-      apply_steer_req = 1
+    elif self.rate_limit_counter > STEER_FAULT_MAX_FRAMES:
+      apply_steer_req = 0
+      self.rate_limit_counter = 0
 
     # TODO: probably can delete this. CS.pcm_acc_status uses a different signal
     # than CS.cruiseState.enabled. confirm they're not meaningfully different
