@@ -183,6 +183,14 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3108 * CV.LB_TO_KG + STD_CARGO_KG  # mean between min and max
       set_lat_tune(ret.lateralTuning, LatTunes.PID_M)
 
+    elif candidate == CAR.LEXUS_CTH_SNG:
+      stop_and_go = True
+      ret.wheelbase = 2.60
+      ret.steerRatio = 18.6
+      tire_stiffness_factor = 0.517
+      ret.mass = 3108 * CV.LB_TO_KG + STD_CARGO_KG  # mean between min and max
+      set_lat_tune(ret.lateralTuning, LatTunes.LQR_PV)
+
     elif candidate in (CAR.LEXUS_NXH, CAR.LEXUS_NX, CAR.LEXUS_NX_TSS2):
       stop_and_go = True
       ret.wheelbase = 2.66
