@@ -8,7 +8,6 @@ from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, FEATURES
 from common.params import Params
-from common.realtime import DT_CTRL
 
 _TRAFFIC_SINGAL_MAP = {
   1: "kph",
@@ -118,7 +117,7 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in FEATURES["use_lta_msg"]:
       self.lkas_enabled = cp_cam.vl["LKAS_HUD"]["LDA_ON_MESSAGE"]
       self.persistLkasIconDisabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"] == 1
-    elif self.CP.carFingerprint is not CAR.PRIUS_V:
+    elif self.CP.carFingerprint != CAR.PRIUS_V:
       self.lkas_enabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"]
       self.persistLkasIconDisabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"] == 0
 
@@ -485,7 +484,7 @@ class CarState(CarStateBase):
       ("PRE_COLLISION", 0), # TODO: figure out why freq is inconsistent
     ]
 
-    if CP.carFingerprint is not CAR.PRIUS_V:
+    if CP.carFingerprint != CAR.PRIUS_V:
       signals += [
         ("LKAS_STATUS", "LKAS_HUD"),
         ("LDA_ON_MESSAGE", "LKAS_HUD"),
