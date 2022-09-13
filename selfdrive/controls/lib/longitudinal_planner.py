@@ -21,8 +21,8 @@ from selfdrive.controls.lib.events import Events
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
-A_CRUISE_MAX_VALS = [1.2, 1.2, 0.8, 0.6]
-A_CRUISE_MAX_BP = [0., 15., 25., 40.]
+A_CRUISE_MAX_VALS = [2.0, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+A_CRUISE_MAX_BP = [0., 10., 25., 40.]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -40,14 +40,14 @@ DP_ACCEL_NORMAL = 1
 DP_ACCEL_SPORT = 2
 
 # accel profile by @arne182 modified by cgw
-_DP_CRUISE_MIN_V = [-0.05, -0.1, -0.3, -0.4, -0.4, -0.23, -0.1]
+_DP_CRUISE_MIN_V = [-0.1, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
 _DP_CRUISE_MIN_V_ECO = [-0.1, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
-_DP_CRUISE_MIN_V_SPORT = [-0.1, -0.2, -0.4, -0.5, -0.5, -0.25, -0.1]
-_DP_CRUISE_MIN_BP = [0.0, 3.0, 5.0, 20.0, 33.3, 40.0, 55.0]
+_DP_CRUISE_MIN_V_SPORT = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+_DP_CRUISE_MIN_BP = [0., 0.07, 6., 8., 11., 15., 20., 25., 30., 55.]
 
-_DP_CRUISE_MAX_V = [3.5, 1.7, 1.31, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
-_DP_CRUISE_MAX_V_ECO = [2.7, 1.4, 1.2, 0.7, 0.48, 0.35, 0.25, 0.15, 0.12, 0.06]
-_DP_CRUISE_MAX_V_SPORT = [3.5, 3.5, 2.5, 1.5, 2.0, 2.0, 2.0, 1.5, 1.0, 0.5]
+_DP_CRUISE_MAX_V = [3.55, 2.2, 1.7, 1.1, 0.9, 0.73, 0.6, 0.5, 0.33, 0.15]
+_DP_CRUISE_MAX_V_ECO = [3.5, 1.8, 1.3, 0.88, 0.6, 0.47, 0.37, 0.23, 0.17, 0.078]
+_DP_CRUISE_MAX_V_SPORT = [3.6, 3.6, 3.4, 3.0, 3.0, 2.5, 2.5, 2.0, 2.0, 1.5]
 _DP_CRUISE_MAX_BP = [0., 3, 6., 8., 11., 15., 20., 25., 30., 55.]
 
 def dp_calc_cruise_accel_limits(v_ego, dp_profile):
