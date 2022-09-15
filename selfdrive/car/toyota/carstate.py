@@ -179,7 +179,7 @@ class CarState(CarStateBase):
       ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]["MAIN_ON"] != 0
       ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS * self.CP.wheelSpeedFactor
 
-    if self.CP.carFingerprint in TSS2_CAR:
+    if self.CP.carFingerprint in TSS2_CAR and self.CP.carFingerprint not in (CAR.COROLLAH_TSS2, CAR.COROLLA_TSS2):
       self.acc_type = cp_cam.vl["ACC_CONTROL"]["ACC_TYPE"]
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
