@@ -3,7 +3,8 @@ from enum import Enum
 
 class LongTunes(Enum):
   TSS2 = 0
-  TSS = 1
+  TSSBetter = 1
+  TSSStock = 2
 
 class LatTunes(Enum):
   INDI_PRIUS = 0
@@ -30,16 +31,17 @@ class LatTunes(Enum):
 def set_long_tune(tune, name):
   # Improved longitudinal tune
   if name == LongTunes.TSS2:
-    tune.deadzoneBP = [0., 8.05]
-    tune.deadzoneV = [.0, .14]
-    tune.kpBP = [0., 5., 20., 30.]
-    tune.kpV = [1.3, 1.0, 0.7, 0.1]
-    tune.kiBP = [0., 0.07, 8, 13., 18., 20., 24., 25., 27., 33.]
-    tune.kiV = [.01, .1, .15, .21, .175, .18, .2, .01, .001, .0001]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 5., 12., 20., 27.]
+    tune.kiV = [.35, .23, .20, .17, .1]
   # Default longitudinal tune
-  elif name == LongTunes.TSS:
-    tune.deadzoneBP = [0., 9.]
-    tune.deadzoneV = [.0, .15]
+  elif name == LongTunes.TSSBetter:
+    tune.kpBP = [0., 5., 35.]
+    tune.kiBP = [0., 35.]
+    tune.kpV = [1.8, 1.5, 1.0]
+    tune.kiV = [0.54, 0.36]
+  elif name == LongTunes.TSSStock:
     tune.kpBP = [0., 5., 35.]
     tune.kiBP = [0., 35.]
     tune.kpV = [3.6, 2.4, 1.5]

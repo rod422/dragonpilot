@@ -142,8 +142,6 @@ class CarState(CarStateBase):
         self.dp_accel_profile_init = True
       self.dp_accel_profile_prev = self.dp_accel_profile
 
-    # distance button
-
     #dp: Thank you Arne (distance button)
     if self.dp_toyota_fp_btn_link:
       if not self.read_distance_lines_init or self.read_distance_lines != cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']:
@@ -151,11 +149,6 @@ class CarState(CarStateBase):
         self.read_distance_lines = cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']
         put_nonblocking('dp_following_profile', str(int(max(self.read_distance_lines - 1, 0)))) # Skipping one profile toyota mid is weird.
         put_nonblocking('dp_last_modified',str(floor(time.time())))
-
-    if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR):
-      self.distance = cp_cam.vl["ACC_CONTROL"]['DISTANCE']
-    elif self.CP.carFingerprint in [CAR.RAV4H, CAR.HIGHLANDER]:
-      self.distance = cp.vl["SDSU"]['FD_BUTTON']
 
     #dp
     ret.engineRPM = cp.vl["ENGINE_RPM"]['RPM']
@@ -178,7 +171,7 @@ class CarState(CarStateBase):
       cluster_set_speed = cp.vl["PCM_CRUISE_ALT"]["UI_SET_SPEED"]
     else:
       ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]["MAIN_ON"] != 0
-      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS
+      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS * self.CP.wheelSpeedFactor
       cluster_set_speed = cp.vl["PCM_CRUISE_SM"]["UI_SET_SPEED"]
 
     # UI_SET_SPEED is always non-zero when main is on, hide until first enable
@@ -192,6 +185,16 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in (TSS2_CAR | RADAR_ACC_CAR):
       self.acc_type = cp_acc.vl["ACC_CONTROL"]["ACC_TYPE"]
       ret.stockFcw = bool(cp_acc.vl["ACC_HUD"]["FCW"])
+
+      # KRKeegan - Add support for toyota distance button
+    if self.CP.carFingerprint in RADAR_ACC_CAR:
+      self.distance = 1 if cp.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
+    elif self.CP.carFingerprint in TSS2_CAR:
+      self.distance = 1 if cp_cam.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
+    elif self.CP.smartDsu:
+      self.distance = 1 if cp.vl["SDSU"]["FD_BUTTON"] == 1 else 0
+
+    ret.distanceLines = cp.vl["PCM_CRUISE_SM"]["DISTANCE_LINES"]
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
     # these cars are identified by an ACC_TYPE value of 2.
@@ -370,9 +373,7 @@ class CarState(CarStateBase):
     else:
       signals.append(("GAS_PEDAL", "GAS_PEDAL"))
       checks.append(("GAS_PEDAL", 33))
-    #arne
-    if CP.carFingerprint in [CAR.RAV4H, CAR.HIGHLANDER]:
-      signals.append(("FD_BUTTON", "SDSU", 0))
+
     #dp acceleration
     if CP.carFingerprint == CAR.RAV4_TSS2:
       signals.append(("SPORT_ON_2", "GEAR_PACKET"))
@@ -408,15 +409,26 @@ class CarState(CarStateBase):
       ]
       checks.append(("BSM", 1))
 
+    # KRKeegan - Add support for toyota distance button
+    if CP.smartDsu:
+      signals.append(("FD_BUTTON", "SDSU"))
+      checks.append(("SDSU", 0))
+
     if CP.carFingerprint in RADAR_ACC_CAR:
       signals += [
         ("ACC_TYPE", "ACC_CONTROL"),
+        ("DISTANCE", "ACC_CONTROL"),
         ("FCW", "ACC_HUD"),
       ]
       checks += [
         ("ACC_CONTROL", 33),
         ("ACC_HUD", 1),
       ]
+
+    # KRKeegan - Add support for toyota distance button
+    if CP.carFingerprint in TSS2_CAR:
+      signals.append(("DISTANCE_LINES", "PCM_CRUISE_SM"))
+      checks.append(("PCM_CRUISE_SM", 0))
 
     if CP.carFingerprint not in (TSS2_CAR - RADAR_ACC_CAR) and not CP.enableDsu:
       signals += [
@@ -457,15 +469,15 @@ class CarState(CarStateBase):
         ("FORCE", "PRE_COLLISION"),
         ("ACC_TYPE", "ACC_CONTROL"),
         ("FCW", "ACC_HUD"),
-        #dp
-        ("DISTANCE_LINES", "PCM_CRUISE_SM"),
         ("DISTANCE", "ACC_CONTROL"),
       ]
       checks += [
         ("PRE_COLLISION", 33),
         ("ACC_CONTROL", 33),
         ("ACC_HUD", 1),
-        ("PCM_CRUISE_SM", 0),
       ]
+
+      # KRKeegan - Add support for toyota distance button
+      signals.append(("DISTANCE", "ACC_CONTROL", 0))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)

@@ -54,7 +54,7 @@ MIN_ACCEL = -3.5
 MAX_ACCEL = 2.0
 T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 5.5
+STOP_DISTANCE = 3.5
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
@@ -211,7 +211,7 @@ class LongitudinalMpc:
     self.reset()
     self.source = SOURCES[2]
     self.dp_following_profile_ctrl = False
-    self.dp_following_profile = 2
+    self.dp_following_profile = 1
 
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -265,12 +265,12 @@ class LongitudinalMpc:
   def get_cost_multipliers(self, v_lead0, v_lead1):
     v_ego = self.x0[1]
     v_ego_bps = [0, 10]
-    TFs = [1.0, 1.25, T_FOLLOW, 1.8]
+    TFs = [0.9, 1.45, 1.8]
     # KRKeegan adjustments to costs for different TFs
     # these were calculated using the test_longitudial.py deceleration tests
-    a_change_tf = interp(self.desired_TF, TFs, [.1, .8, 1., 1.1])
-    j_ego_tf = interp(self.desired_TF, TFs, [.6, .8, 1., 1.1])
-    d_zone_tf = interp(self.desired_TF, TFs, [1.6, 1.3, 1., 1.])
+    a_change_tf = interp(self.desired_TF, TFs, [.1, .8, 1.])
+    j_ego_tf = interp(self.desired_TF, TFs, [.6, .8, 1.])
+    d_zone_tf = interp(self.desired_TF, TFs, [1.6, 1.3, 1.])
     # KRKeegan adjustments to improve sluggish acceleration
     # do not apply to deceleration
     j_ego_v_ego = 1
@@ -345,17 +345,15 @@ class LongitudinalMpc:
   def update_TF(self, sm, carstate):
     if self.dp_following_profile_ctrl and self.mode == 'acc':
       if self.dp_following_profile == 0:
-        # At slow speeds more time, decrease time up to 60mph
-        # in mph ~= 5     10   15   20  25     30    35     40  45     50    55     60  65     70    75     80  85     90
-        x_vel = [0.0,  1,    2.78,  5.56,   8.33,  11.11, 13.89, 16.67, 19.44, 22.22, 25.0, 27.78, 30.56, 33.33, 36.11, 38.89, 41.67]
-        y_dist = [1.1, 1.15, 1.25,  1.3,   1.3368, 1.3368, 1.3, 1.24,  1.16,  1.2,  1.21, 1.22,  1.23,  1.24,   1.25,  1.26,  1.27]
-        self.desired_TF = np.interp(carstate.vEgo, x_vel, y_dist)
+        self.desired_TF = 0.9
       if self.dp_following_profile == 1:
-        x_vel = [0.0,  1,    2.78,  5.56,   8.33,  11.11, 13.89, 16.67, 19.44, 22.22, 27.78, 30.56, 33.33, 36.11, 38.89, 41.67]
-        y_dist = [1.3, 1.38, 1.45,   1.5045, 1.535, 1.59,  1.642, 1.683, 1.726, 1.76,  1.83,  1.9,   1.99,  2.1,   2.23,  2.4]
-        self.desired_TF = np.interp(carstate.vEgo, x_vel, y_dist)
-      if self.dp_following_profile == 2:
         self.desired_TF = T_FOLLOW
+      if self.dp_following_profile == 2:
+        self.desired_TF = 1.8
+      else:
+        self.desired_TF = T_FOLLOW
+    else:
+      self.desired_TF = T_FOLLOW
 
   def update(self, sm, carstate, radarstate, v_cruise, x, v, a, j, prev_accel_constraint):
     v_ego = self.x0[1]
