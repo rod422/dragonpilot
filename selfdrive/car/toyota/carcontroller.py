@@ -1,4 +1,5 @@
 from cereal import car
+from common.realtime import DT_CTRL
 from common.numpy_fast import clip, interp
 from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_interceptor_command, make_can_msg
 from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_command, \
@@ -28,6 +29,8 @@ class CarController:
     self.alert_active = False
     self.last_standstill = False
     self.standstill_req = False
+    self.last_off_frame = 0
+    self.permit_braking = True
 
     self.packer = CANPacker(dbc_name)
     self.gas = 0
@@ -77,6 +80,7 @@ class CarController:
       apply_steer_req = 0
       self.steer_rate_counter = 0
 
+    lead_vehicle_stopped = hud_control.leadVelocity < 0.5 and hud_control.leadVisible  # Give radar some room for error
     # TODO: probably can delete this. CS.pcm_acc_status uses a different signal
     # than CS.cruiseState.enabled. confirm they're not meaningfully different
     #if not CC.enabled and CS.pcm_acc_status:
@@ -109,6 +113,18 @@ class CarController:
     #   can_sends.append(create_steer_command(self.packer, 0, 0, self.frame // 2))
     #   can_sends.append(create_lta_steer_command(self.packer, actuators.steeringAngleDeg, apply_steer_req, self.frame // 2))
 
+    # record frames
+    if not CC.enabled:
+      self.last_off_frame = self.frame
+    if CS.out.gasPressed:
+      self.last_gas_press_frame = self.frame
+
+    # Handle permit braking logic
+    if (actuators.accel > 0.35) or not CC.enabled or (0.5 / DT_CTRL > (self.frame - self.last_off_frame) and not lead_vehicle_stopped):
+      self.permit_braking = False
+    else:
+      self.permit_braking = True
+
     # we can spam can to cancel the system even if we are using lat only control
     if (self.frame % 3 == 0 and self.CP.openpilotLongitudinalControl) or pcm_cancel_cmd:
       lead = hud_control.leadVisible or CS.out.vEgo < 12.  # at low speed we always assume the lead is present so ACC can be engaged
@@ -117,10 +133,10 @@ class CarController:
       if pcm_cancel_cmd and self.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
       elif self.CP.openpilotLongitudinalControl:
-        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.gap_adjust_cruise_tr_line, CS.reverse_acc_change))
+        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.gap_adjust_cruise_tr_line, CS.reverse_acc_change, self.permit_braking, lead_vehicle_stopped))
         self.accel = pcm_accel_cmd
       else:
-        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, CS.gap_adjust_cruise_tr_line, CS.reverse_acc_change))
+        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, CS.gap_adjust_cruise_tr_line, CS.reverse_acc_change, False, False))
 
     if self.frame % 2 == 0 and self.CP.enableGasInterceptor and self.CP.openpilotLongitudinalControl:
       # send exactly zero if gas cmd is zero. Interceptor will send the max between read value and gas cmd.

@@ -14,6 +14,12 @@ EventName = car.CarEvent.EventName
 
 
 class CarInterface(CarInterfaceBase):
+  def __init__(self, CP, CarController, CarState):
+    super().__init__(CP, CarController, CarState)
+
+    # init for low speed re-write (dp)
+    self.low_cruise_speed = 0.
+
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     if CP.carFingerprint in TSS2_CAR:
@@ -58,9 +64,10 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PRIUS_V:
       stop_and_go = True
       ret.wheelbase = 2.78
-      ret.steerRatio = 17.4
+      ret.steerRatio = 18.1
       tire_stiffness_factor = 0.5533
       ret.mass = 3340. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.09
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning, steering_angle_deadzone_deg)
 
     elif candidate in (CAR.RAV4, CAR.RAV4H):
@@ -248,8 +255,10 @@ class CarInterface(CarInterfaceBase):
       set_long_tune(ret.longitudinalTuning, LongTunes.TSS2)
       if candidate in TSS2_CAR:
         ret.stoppingDecelRate = 0.3 # reach stopping target smoothly
+    elif Params().get_bool("EndToEndLong") and candidate not in TSS2_CAR:
+      set_long_tune(ret.longitudinalTuning, LongTunes.TSSStock)
     else:
-      set_long_tune(ret.longitudinalTuning, LongTunes.TSS)
+      set_long_tune(ret.longitudinalTuning, LongTunes.TSSBetter)
 
     if candidate in FEATURES["use_lta_msg"]:
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_TOYOTA_MADS_LTA_MSG
@@ -265,6 +274,19 @@ class CarInterface(CarInterfaceBase):
     ret.leftBlinkerOn = self.CS.leftBlinkerOn
     ret.rightBlinkerOn = self.CS.rightBlinkerOn
     ret.belowLaneChangeSpeed = self.CS.belowLaneChangeSpeed
+
+    # low speed re-write (dp)
+    self.cruise_speed_override = True # change this to False if you want to disable cruise speed override
+    if ret.cruiseState.enabled and ret.cruiseState.speed < 45 * CV.KPH_TO_MS and self.CP.openpilotLongitudinalControl:
+      if self.cruise_speed_override:
+        if self.low_cruise_speed == 0.:
+          ret.cruiseState.speed = self.low_cruise_speed = max(24 * CV.KPH_TO_MS, ret.vEgo)
+        else:
+          ret.cruiseState.speed = self.low_cruise_speed
+      else:
+        ret.cruiseState.speed = 24 * CV.KPH_TO_MS
+    else:
+      self.low_cruise_speed = 0.
 
     buttonEvents = []
 

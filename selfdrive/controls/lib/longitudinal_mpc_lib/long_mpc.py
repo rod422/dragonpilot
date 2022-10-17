@@ -56,7 +56,7 @@ MIN_ACCEL = -3.5
 MAX_ACCEL = 2.0
 T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 5.5
+STOP_DISTANCE = 3.5
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
@@ -359,7 +359,7 @@ class LongitudinalMpc:
         elif carstate.gapAdjustCruiseTr == 2:
           self.desired_TF = T_FOLLOW
         elif carstate.gapAdjustCruiseTr == 3:
-          self.desired_TF = 1.2
+          self.desired_TF = 0.8
       elif CP.carName == "honda":
         if carstate.gapAdjustCruiseTr == 0:
           self.desired_TF = 1.8
