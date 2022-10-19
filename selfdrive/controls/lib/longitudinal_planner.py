@@ -37,7 +37,7 @@ def get_max_accel(v_ego, CP):
       a_cruise_max_vals = [1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
       a_cruise_max_bp = [0., 10., 25., 40.]
     else:
-      a_cruise_max_vals = [2.0, 1.7, 1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+      a_cruise_max_vals = [2.0, 1.8, 1.6, 1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
       a_cruise_max_bp = [0., 3., 6., 8., 10., 25., 40.]
     return interp(v_ego, a_cruise_max_bp, a_cruise_max_vals)
   else:
