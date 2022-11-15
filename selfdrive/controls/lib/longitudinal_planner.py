@@ -57,9 +57,9 @@ _dp_cruise_min_v_eco = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1
 _dp_cruise_min_v_sport = [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0]
 _dp_cruise_min_bp = [0., 0.07, 6., 8., 11., 15., 20., 25., 30., 55.]
 
-_dp_cruise_max_v = [2.0, 1.8, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
+_dp_cruise_max_v = [2.0, 1.6, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
 _dp_cruise_max_v_eco = [1.8, 1.3, 1.1, 0.85, 0.65, 0.55, 0.45, 0.42, 0.24, 0.09]
-_dp_cruise_max_v_sport = [2.2, 2.0, 2.0, 1.5, 2.0, 2.0, 2.0, 1.5, 1.0, 0.5]
+_dp_cruise_max_v_sport = [2.2, 1.8, 1.6, 1.5, 1.8, 1.8, 1.8, 1.5, 1.0, 0.5]
 _dp_cruise_max_bp = [0., 3., 6., 8., 11., 15., 20., 25., 30., 55.]
 
 # count n times before we decide a lead is there or not
@@ -236,7 +236,7 @@ class LongitudinalPlanner:
     desired_tf = T_FOLLOW
     if self.dp_following_profile_ctrl and self.mpc.mode == 'acc':
       if self.dp_following_profile == 0:
-        desired_tf = 0.8
+        desired_tf = 0.9
       elif self.dp_following_profile == 1:
         desired_tf = T_FOLLOW
       elif self.dp_following_profile == 2:
