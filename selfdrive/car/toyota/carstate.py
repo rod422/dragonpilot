@@ -179,7 +179,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR):
       self.distance = cp_cam.vl["ACC_CONTROL"]['DISTANCE']
-    elif self.CP.carFingerprint in [CAR.RAV4H, CAR.HIGHLANDER]:
+    elif self.CP.smartDsu:
       self.distance = cp.vl["SDSU"]['FD_BUTTON']
 
     #dp
@@ -203,7 +203,7 @@ class CarState(CarStateBase):
       cluster_set_speed = cp.vl["PCM_CRUISE_ALT"]["UI_SET_SPEED"]
     else:
       ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]["MAIN_ON"] != 0
-      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS
+      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS * self.CP.wheelSpeedFactor
       cluster_set_speed = cp.vl["PCM_CRUISE_SM"]["UI_SET_SPEED"]
 
     # UI_SET_SPEED is always non-zero when main is on, hide until first enable
@@ -396,8 +396,9 @@ class CarState(CarStateBase):
       signals.append(("GAS_PEDAL", "GAS_PEDAL"))
       checks.append(("GAS_PEDAL", 33))
     #arne
-    if CP.carFingerprint in [CAR.RAV4H, CAR.HIGHLANDER]:
-      signals.append(("FD_BUTTON", "SDSU", 0))
+    if CP.smartDsu:
+      signals.append(("FD_BUTTON", "SDSU"))
+      checks.append(("SDSU", 0))
     #dp acceleration
     if CP.carFingerprint in (CAR.RAV4_TSS2, CAR.LEXUS_ES_TSS2):
       signals.append(("SPORT_ON_2", "GEAR_PACKET"))
