@@ -6,7 +6,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE
+from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, EV_HYBRID_CAR, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE
 from common.params import Params, put_nonblocking
 import time
 from math import floor
@@ -49,6 +49,7 @@ class CarState(CarStateBase):
     self.dp_accel_profile_prev = None
     self.dp_accel_profile_init = False
     self.dp_toyota_ap_btn_link = Params().get_bool('dp_toyota_ap_btn_link')
+    self.dp_toyota_sng = Params().get_bool('dp_toyota_sng')
     # KRKeegan - Add support for toyota distance button
     self.distance_btn = 0
 
@@ -187,7 +188,7 @@ class CarState(CarStateBase):
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]["LOW_SPEED_LOCKOUT"] == 2
 
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
-    if self.CP.carFingerprint in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor:
+    if (self.dp_toyota_sng and self.CP.carFingerprint in EV_HYBRID_CAR and self.CP.smartDsu) or self.CP.carFingerprint in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor:
       # ignore standstill in hybrid vehicles, since pcm allows to restart without
       # receiving any special command. Also if interceptor is detected
       ret.cruiseState.standstill = False
