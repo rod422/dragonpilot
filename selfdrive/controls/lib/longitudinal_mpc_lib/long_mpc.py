@@ -347,7 +347,6 @@ class LongitudinalMpc:
     elif carstate.distanceLines == 2: # Relaxed
       self.desired_TF = T_FOLLOW
       self.desired_stop_distance = STOP_DISTANCE
-
     elif carstate.distanceLines == 3: # Let You Cut In
       self.desired_TF = 1.8
       self.desired_stop_distance = STOP_DISTANCE + 0.5
