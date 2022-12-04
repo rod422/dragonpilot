@@ -110,6 +110,7 @@ class CarController():
     self.last_blinker_on = blinker_on
 
     self.last_steer = apply_steer
+    self.last_standstill = CS.out.standstill
 
     can_sends = []
 
@@ -153,7 +154,7 @@ class CarController():
       if dragonconf.dpAtl and not dragonconf.dpAtlOpLong:
         pass
       # Lexus IS uses a different cancellation message
-      elif pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
+      if pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
       elif CS.CP.openpilotLongitudinalControl:
         can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, self.permit_braking, CS.distance))
