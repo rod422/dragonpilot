@@ -10,6 +10,7 @@ from common.filter_simple import FirstOrderFilter
 from common.params import Params
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
+from selfdrive.car.toyota.values import TSS2_CAR
 from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
@@ -35,8 +36,12 @@ _A_TOTAL_MAX_BP = [20., 40.]
 
 def get_max_accel(v_ego, CP):
   if CP.carName == "toyota":
-    a_cruise_max_vals = [1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
-    a_cruise_max_bp = [0., 10., 25., 40.]
+    if CP.carFingerprint in TSS2_CAR:
+      a_cruise_max_vals = [1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+      a_cruise_max_bp = [0., 10., 25., 40.]
+    else:
+      a_cruise_max_vals = [1.6, 1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+      a_cruise_max_bp = [0., 3., 10., 25., 40.]
     return interp(v_ego, a_cruise_max_bp, a_cruise_max_vals)
   else:
     return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)

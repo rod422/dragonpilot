@@ -13,6 +13,12 @@ EventName = car.CarEvent.EventName
 
 
 class CarInterface(CarInterfaceBase):
+  def __init__(self, CP, CarController, CarState):
+    super().__init__(CP, CarController, CarState)
+
+    # init for low speed re-write (dp)
+    self.low_cruise_speed = 0.
+
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     if CP.carFingerprint in TSS2_CAR:
@@ -56,9 +62,10 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PRIUS_V:
       stop_and_go = True
       ret.wheelbase = 2.78
-      ret.steerRatio = 17.4
+      ret.steerRatio = 18.1
       tire_stiffness_factor = 0.5533
       ret.mass = 3340. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.09
 
     elif candidate in (CAR.RAV4, CAR.RAV4H):
       stop_and_go = True if (candidate in CAR.RAV4H) else False
@@ -287,6 +294,19 @@ class CarInterface(CarInterfaceBase):
     extraGears = []
     if not (self.CS.CP.openpilotLongitudinalControl or self.CS.CP.enableGasInterceptor):
       extraGears = [car.CarState.GearShifter.sport, car.CarState.GearShifter.low, car.CarState.GearShifter.brake]
+
+    # low speed re-write (dp)
+    self.cruise_speed_override = True # change this to False if you want to disable cruise speed override
+    if ret.cruiseState.enabled and ret.cruiseState.speed < 45 * CV.KPH_TO_MS and self.CP.openpilotLongitudinalControl:
+      if self.cruise_speed_override:
+        if self.low_cruise_speed == 0.:
+          ret.cruiseState.speed = self.low_cruise_speed = max(24 * CV.KPH_TO_MS, ret.vEgo)
+        else:
+          ret.cruiseState.speed = self.low_cruise_speed
+      else:
+        ret.cruiseState.speed = 24 * CV.KPH_TO_MS
+    else:
+      self.low_cruise_speed = 0.
 
     # events
     events = self.create_common_events(ret, extra_gears=extraGears, pcm_enable=False)
