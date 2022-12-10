@@ -101,7 +101,7 @@ def create_bosch_supplemental_1(packer, car_fingerprint):
   return packer.make_can_msg("BOSCH_SUPPLEMENTAL_1", bus, values)
 
 
-def create_ui_commands(packer, CP, enabled, lat_active, pcm_speed, hud, is_metric, acc_hud, lkas_hud, gap_adjust_cruise_tr, beep, speed_limit_changed, slc_active):
+def create_ui_commands(packer, CP, enabled, lat_active, pcm_speed, hud, is_metric, acc_hud, lkas_hud, gap_adjust_cruise_tr, beep, speed_limit_changed, slc_active, e2e_long_chime):
   commands = []
   bus_pt = get_pt_bus(CP.carFingerprint)
   radar_disabled = CP.carFingerprint in HONDA_BOSCH and CP.openpilotLongitudinalControl
@@ -136,7 +136,7 @@ def create_ui_commands(packer, CP, enabled, lat_active, pcm_speed, hud, is_metri
     'STEERING_REQUIRED': hud.steer_required,
     'SOLID_LANES': lat_active,
     'DASHED_LANES': hud.dashed_lanes,
-    'BEEP': 1 if slc_active and (beep or speed_limit_changed) else 0,
+    'BEEP': 1 if (slc_active and (beep or speed_limit_changed)) or e2e_long_chime else 0,
   }
 
   if CP.carFingerprint in HONDA_BOSCH_RADARLESS:

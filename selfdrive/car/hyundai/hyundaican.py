@@ -89,12 +89,12 @@ def create_clu11(packer, frame, clu11, button, car_fingerprint):
   return packer.make_can_msg("CLU11", bus, values)
 
 
-def create_lfahda_mfc(packer, lat_active, disengage_from_brakes, below_lane_change_speed, disengage_blinking_icon, slc_active, speed_limit, speed_limit_changed, switching_to_hda, hda_set_speed=0):
+def create_lfahda_mfc(packer, lat_active, disengage_from_brakes, below_lane_change_speed, disengage_blinking_icon, slc_active, speed_limit, speed_limit_changed, switching_to_hda, e2e_long_chime, hda_set_speed=0):
   values = {
     "LFA_Icon_State": 2 if lat_active else 3 if disengage_blinking_icon else 1 if (disengage_from_brakes or below_lane_change_speed) else 0,
     "HDA_Active": 1 if slc_active else 0,
     "HDA_Icon_State": 2 if slc_active else 1 if speed_limit > 0.0 else 0,
-    "HDA_Chime": 1 if slc_active and speed_limit_changed else 0,
+    "HDA_Chime": 1 if (slc_active and speed_limit_changed) or e2e_long_chime else 0,
     "LFA_SysWarning": 1 if switching_to_hda else 0,
     #"HDA_VSetReq": hda_set_speed,
   }

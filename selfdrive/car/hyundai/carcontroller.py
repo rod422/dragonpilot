@@ -59,7 +59,7 @@ class CarController:
 
     self.disengage_blink = 0.
 
-    self.sm = messaging.SubMaster(['liveMapData', 'controlsState', 'longitudinalPlan'])
+    self.sm = messaging.SubMaster(['liveMapData', 'controlsState', 'longitudinalPlan', 'e2eLongState'])
     self.param_s = Params()
     self.speed_limit_control_enabled = self.param_s.get_bool("SpeedLimitControl")
     self.vision_turn_speed_control = self.param_s.get_bool("TurnVisionControl")
@@ -89,6 +89,9 @@ class CarController:
     self.slc_active_stock = False
     self.cruise_button = None
     self.speed_diff = 0
+    self.e2e_long_status = 0
+    self.e2e_long_status_timer = 0
+    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
   def update(self, CC, CS):
     self.sm.update(0)
@@ -102,6 +105,8 @@ class CarController:
     self.speed_limit_value_offset = int(self.param_s.get("SpeedLimitValueOffset"))
     self.v_cruise_kph_prev = self.sm['controlsState'].vCruise
     self.get_speed_limit()
+    self.e2e_long_status = self.sm['e2eLongState'].status
+    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -163,6 +168,13 @@ class CarController:
       self.speed_limit_prev = self.speed_limit
 
     enhanced_scc = self.CP.flags & HyundaiFlags.SP_ENHANCED_SCC
+
+    if self.e2e_long_status != 2:
+      self.e2e_long_status_timer = cur_time
+
+    e2e_long_chime = self.e2e_long_alert and self.e2e_long_status == 2 and not hud_control.leadVisible and \
+                     not CS.out.cruiseState.enabled and (CS.out.brakePressed or CS.out.brakeHoldActive) and \
+                     not CS.out.gasPressed and CS.out.standstill and (0.3 < (cur_time - self.e2e_long_status_timer) <= 1.3)
 
     can_sends = []
 
@@ -281,7 +293,7 @@ class CarController:
                                                           CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
                                                           CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
                                                           CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022, CAR.ELANTRA_2022_NON_SCC, CAR.GENESIS_G70_2021_NON_SCC):
-        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.latActive, disengage_from_brakes, below_lane_change_speed, disengage_blinking_icon, slc_active, round(self.speed_limit * CV.MS_TO_KPH), speed_limit_changed, switching_to_hda))
+        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.latActive, disengage_from_brakes, below_lane_change_speed, disengage_blinking_icon, slc_active, round(self.speed_limit * CV.MS_TO_KPH), speed_limit_changed, switching_to_hda, e2e_long_chime))
 
       # 5 Hz ACC options
       if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl:

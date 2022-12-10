@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
-from cereal import car
 from common.numpy_fast import clip, interp
 
 import cereal.messaging as messaging
@@ -20,8 +19,6 @@ from selfdrive.controls.lib.speed_limit_controller import SpeedLimitController, 
 from selfdrive.controls.lib.turn_speed_controller import TurnSpeedController
 from selfdrive.controls.lib.events import Events
 from system.swaglog import cloudlog
-
-EventName = car.CarEvent.EventName
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
@@ -176,8 +173,6 @@ class LongitudinalPlanner:
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired_filter.x = self.v_desired_filter.x + DT_MDL * (self.a_desired + a_prev) / 2.0
 
-    self.update_events(sm['e2eLongState'])
-
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
 
@@ -250,12 +245,3 @@ class LongitudinalPlanner:
     source = min(v_solutions, key=v_solutions.get)
 
     return source, a_solutions[source], v_solutions[source]
-
-  def update_events(self, e2e_long_state):
-    e2e_long_status = e2e_long_state.status
-
-    if self.params.get_bool("EndToEndLongAlert"):
-      if e2e_long_status == 1:
-        self.events.add(EventName.e2eLongStop)
-      elif e2e_long_status == 2:
-        self.events.add(EventName.e2eLongStart)

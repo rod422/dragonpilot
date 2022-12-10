@@ -127,7 +127,7 @@ class CarController:
     self.brake = 0.0
     self.last_steer = 0.0
 
-    self.sm = messaging.SubMaster(['liveMapData', 'controlsState', 'longitudinalPlan'])
+    self.sm = messaging.SubMaster(['liveMapData', 'controlsState', 'longitudinalPlan', 'e2eLongState'])
     self.param_s = Params()
     self.speed_limit_control_enabled = self.param_s.get_bool("SpeedLimitControl")
     self.vision_turn_speed_control = self.param_s.get_bool("TurnVisionControl")
@@ -156,6 +156,9 @@ class CarController:
     self.slc_active_stock = False
     self.cruise_button = None
     self.speed_diff = 0
+    self.e2e_long_status = 0
+    self.e2e_long_status_timer = 0
+    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
   def update(self, CC, CS):
     self.sm.update(0)
@@ -169,6 +172,8 @@ class CarController:
     self.speed_limit_value_offset = int(self.param_s.get("SpeedLimitValueOffset"))
     self.v_cruise_kph_prev = self.sm['controlsState'].vCruise
     self.get_speed_limit()
+    self.e2e_long_status = self.sm['e2eLongState'].status
+    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -266,6 +271,13 @@ class CarController:
     if not speed_limit_changed:
       self.speed_limit_prev = self.speed_limit
 
+    if self.e2e_long_status != 2:
+      self.e2e_long_status_timer = cur_time
+
+    e2e_long_chime = self.e2e_long_alert and self.e2e_long_status == 2 and not hud_control.leadVisible and \
+                     not CS.out.cruiseState.enabled and (CS.out.brakePressed or CS.out.brakeHoldActive) and \
+                     not CS.out.gasPressed and CS.out.standstill and (0.3 < (cur_time - self.e2e_long_status_timer) <= 0.4)
+
     if not self.CP.openpilotLongitudinalControl:
       if self.frame % 2 == 0 and self.CP.carFingerprint not in HONDA_BOSCH_RADARLESS:  # radarless cars don't have supplemental message
         can_sends.append(hondacan.create_bosch_supplemental_1(self.packer, self.CP.carFingerprint))
@@ -321,7 +333,7 @@ class CarController:
     if self.frame % 10 == 0:
       hud = HUDData(int(pcm_accel), int(round(hud_v_cruise)), hud_control.leadVisible,
                     hud_control.lanesVisible, fcw_display, acc_alert, steer_required, CS.madsEnabled and not CC.latActive)
-      can_sends.extend(hondacan.create_ui_commands(self.packer, self.CP, CC.enabled and CS.out.cruiseState.enabled, CC.latActive, pcm_speed, hud, CS.is_metric, CS.acc_hud, CS.lkas_hud, CS.gap_adjust_cruise_tr, beep, speed_limit_changed, slc_active))
+      can_sends.extend(hondacan.create_ui_commands(self.packer, self.CP, CC.enabled and CS.out.cruiseState.enabled, CC.latActive, pcm_speed, hud, CS.is_metric, CS.acc_hud, CS.lkas_hud, CS.gap_adjust_cruise_tr, beep, speed_limit_changed, slc_active, e2e_long_chime))
 
       if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint not in HONDA_BOSCH:
         self.speed = pcm_speed

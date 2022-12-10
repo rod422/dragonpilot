@@ -68,10 +68,10 @@ def create_fcw_command(packer, fcw):
 
 
 def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_depart, right_lane_depart, lat_active,
-                      mads_enabled, use_lta_msg):
+                      mads_enabled, use_lta_msg, e2e_long_chime):
   faded_line = mads_enabled and not lat_active
   values = {
-    "TWO_BEEPS": chime if mads_enabled else 0,
+    "TWO_BEEPS": chime if mads_enabled or e2e_long_chime else 0,
     "LDA_ALERT": steer if mads_enabled else 0,
     "RIGHT_LINE": 0 if not mads_enabled else 2 if faded_line else 3 if right_lane_depart else 1 if right_line else 2,
     "LEFT_LINE": 0 if not mads_enabled else 2 if faded_line else 3 if left_lane_depart else 1 if left_line else 2,
@@ -98,5 +98,12 @@ def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_dep
     "LDA_UNAVAILABLE_QUIET": 0,
     "ADJUSTING_CAMERA": 0,
     "LDW_EXIST": 1,
+  }
+  return packer.make_can_msg("LKAS_HUD", 0, values)
+
+def create_ui_command_disable_startup_lkas(packer, use_lta_msg):
+  values = {
+    "LKAS_STATUS": 1 if use_lta_msg else 0, # LKAS not enabled
+    "LDA_ON_MESSAGE": 0,
   }
   return packer.make_can_msg("LKAS_HUD", 0, values)

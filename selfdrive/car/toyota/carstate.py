@@ -7,7 +7,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, EV_HYBRID_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR, FEATURES
+from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR, FEATURES
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 _TRAFFIC_SINGAL_MAP = {
@@ -70,7 +70,7 @@ class CarState(CarStateBase):
     self.e2e_long_hold = False
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
     self.reverse_acc_change = 1
-    self.topsng = True
+    self.persistLkasIconDisabled = None
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -118,8 +118,10 @@ class CarState(CarStateBase):
     self.cruise_buttons = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
     if self.CP.carFingerprint in FEATURES["use_lta_msg"]:
       self.lkas_enabled = cp_cam.vl["LKAS_HUD"]["LDA_ON_MESSAGE"]
+      self.persistLkasIconDisabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"] == 1
     elif self.CP.carFingerprint != CAR.PRIUS_V:
       self.lkas_enabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"]
+      self.persistLkasIconDisabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"] == 0
 
     if self.prev_lkas_enabled is None:
       self.prev_lkas_enabled = self.lkas_enabled
@@ -196,11 +198,11 @@ class CarState(CarStateBase):
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]["LOW_SPEED_LOCKOUT"] == 2
 
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
-    if self.topsng and self.CP.carFingerprint in EV_HYBRID_CAR and self.CP.flags & ToyotaFlags.SMART_DSU:
+    if (self.CP.flags & ToyotaFlags.HYBRID) and (self.CP.flags & ToyotaFlags.SMART_DSU):
       # ignore standstill in hybrid vehicles, since pcm allows to restart without
       # receiving any special command. Also if interceptor is detected
       ret.cruiseState.standstill = False
-    else:
+    elif self.CP.carFingerprint not in (NO_STOP_TIMER_CAR - TSS2_CAR) and not (self.CP.flags & ToyotaFlags.SMART_DSU):
       ret.cruiseState.standstill = self.pcm_acc_status == 7
     ret.cruiseState.enabled = bool(cp.vl["PCM_CRUISE"]["CRUISE_ACTIVE"])
     ret.cruiseState.nonAdaptive = cp.vl["PCM_CRUISE"]["CRUISE_STATE"] in (1, 2, 3, 4, 5, 6)

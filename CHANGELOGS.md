@@ -1,3 +1,27 @@
+sunnypilot - Version Latest (2022-12-10)
+========================
+* IMPROVED: NEW❗ Developer UI design
+  * Second column metrics is now moved to the bottom of the screen
+    * ACC. = Acceleration
+    * L.S. = Lead Speed
+    * E.T. = EPS Torque
+    * B.D. = Bearing Degree
+    * FRI. = Friction
+    * L.A. = Lateral Acceleration
+    * ALT. = Altitude
+* Bug fixes and performance improvements
+
+sunnypilot - Version Latest (2022-12-07)
+========================
+* NEW❗: Screen Recorder support thanks to neokii and Kumar!
+* NEW❗: End-to-end longitudinal start/stop status icon
+  * Only appears when Experimental Mode is enabled
+* NEW❗: End-to-end longitudinal car chime when starting
+  * Hyundai/Kia/Genesis CAN platform, Honda/Acura Bosch/Nidec, Toyota/Lexus
+  * i.e. Traffic light turns green, stop sign ready to go, etc.
+  * Only appears when Experimental Mode is enabled AND longitudinal control is disengaged
+* Bug fixes and performance improvements
+
 sunnypilot - Version Latest (2022-12-05)
 ========================
 * UPDATED: Synced with commaai's master branch - 2022.12.04-22:46:00:GMT - 0.9.1

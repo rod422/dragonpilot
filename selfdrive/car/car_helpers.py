@@ -177,38 +177,25 @@ def fingerprint(logcan, sendcan, num_pandas):
 
 
 def is_connected_to_internet(timeout=5):
-  try:
-    requests.get("https://sentry.io", timeout=timeout)
-    return True
-  except Exception:
-    return False
+  attempts = 0
+  while attempts < 3:
+    try:
+      requests.get("https://sentry.io", timeout=timeout)
+      return True
+    except Exception:
+      attempts += 1
+  return False
 
 
 def crash_log(candidate):
-  no_internet = 0
-  while True:
-    if is_connected_to_internet():
-      sentry.capture_warning("fingerprinted %s" % candidate)
-      break
-    else:
-      no_internet += 1
-      if no_internet >= 2:
-        break
-      time.sleep(600)
+  if is_connected_to_internet():
+    sentry.capture_warning("fingerprinted %s" % candidate)
 
 
 def crash_log2(fingerprints, fw):
-  no_internet = 0
-  while True:
-    if is_connected_to_internet():
-      sentry.capture_warning("car doesn't match any fingerprints: %s" % fingerprints)
-      sentry.capture_warning("car doesn't match any fw: %s" % fw)
-      break
-    else:
-      no_internet += 1
-      if no_internet >= 2:
-        break
-      time.sleep(600)
+  if is_connected_to_internet():
+    sentry.capture_warning("car doesn't match any fingerprints: %s" % fingerprints)
+    sentry.capture_warning("car doesn't match any fw: %s" % fw)
 
 
 def get_car(logcan, sendcan, num_pandas=1):

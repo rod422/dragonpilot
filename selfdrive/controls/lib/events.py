@@ -643,22 +643,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: speed_limit_adjust_alert,
   },
 
-  EventName.e2eLongStop: {
-    ET.WARNING: Alert(
-      "E2E Long: Stopping...",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
-  },
-
-  EventName.e2eLongStart: {
-    ET.WARNING: Alert(
-      "E2E Long: Starting...",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
-  },
-
   # ********** events that affect controls state transitions **********
 
   EventName.pcmEnable: {
