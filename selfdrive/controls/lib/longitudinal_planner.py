@@ -9,6 +9,7 @@ from common.filter_simple import FirstOrderFilter
 from common.params import Params
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
+from selfdrive.car.toyota.values import TSS2_CAR
 from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL, T_FOLLOW
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
@@ -46,10 +47,21 @@ _DP_CRUISE_MIN_V_ECO =   [-0.80,  -0.75,  -0.65, -0.65,  -0.60, -0.50]
 _DP_CRUISE_MIN_V_SPORT = [-1.0,   -1.0,   -1.0,  -1.1,   -1.1,  -1.1]
 _DP_CRUISE_MIN_BP =      [0.,     0.07,   10.,   20.,    30.,   55.]
 
-_DP_CRUISE_MAX_V =       [3.5, 3.4, 2.1, 1.6, 1.1, 0.91, 0.68, 0.44, 0.34, 0.13]
-_DP_CRUISE_MAX_V_ECO =   [3.0, 2.2, 1.4, 1.0, 0.75, 0.6, 0.48, 0.36, 0.28, 0.09]
-_DP_CRUISE_MAX_V_SPORT = [3.5, 3.5, 3.4, 3.0, 2.1, 1.61, 1.1,  0.63, 0.50, 0.33]
-_DP_CRUISE_MAX_BP =      [0.,  3,   6.,  8.,  11., 15.,  20.,  25.,  30.,  55.]
+_DP_CRUISE_MAX_V =       [1.4, 1.4, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
+_DP_CRUISE_MAX_V_ECO =   [1.2, 1.2, 1.0, 0.7,  0.48, 0.35, 0.25, 0.15, 0.12, 0.06]
+_DP_CRUISE_MAX_V_SPORT = [1.6, 1.6, 1.4, 1.0,  1.2,  1.2,  1.2,  1.0,  0.8,  0.5]
+_DP_CRUISE_MAX_BP =      [0.,  3.,  6.,  8.,   11.,  15.,  20.,  25.,  30.,  55.]
+
+_dp_cruise_min_v =       [-0.80,  -0.80,  -0.75, -0.75,  -0.75, -0.60]
+_dp_cruise_min_v_eco =   [-0.80,  -0.75,  -0.65, -0.65,  -0.60, -0.50]
+_dp_cruise_min_v_sport = [-1.0,   -1.0,   -1.0,  -1.1,   -1.1,  -1.1]
+_dp_cruise_min_bp =      [0.,     0.07,   10.,   20.,    30.,   55.]
+
+_dp_cruise_max_v =       [1.8, 1.6, 1.4, 1.4, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3]
+_dp_cruise_max_v_eco =   [1.6, 1.4, 1.2, 1.2, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
+_dp_cruise_max_v_sport = [2.0, 1.8, 1.6, 1.6, 1.4, 1.4, 1.2, 1.0, 0.8, 0.5]
+_dp_cruise_max_bp =      [0.,  3.,  6.,  8.,  11., 15., 20., 25., 30., 55.]
+
 
 # d-e2e, from modeldata.h
 MIN_DRAW_DISTANCE = 10.
@@ -67,20 +79,42 @@ _DP_E2E_STOP_COUNT = 5
 _DP_E2E_SNG_COUNT = 25
 _DP_E2E_SWAP_COUNT = 3
 
-def dp_calc_cruise_accel_limits(v_ego, dp_profile):
-  if dp_profile == DP_ACCEL_ECO:
-    a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V_ECO)
-    a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V_ECO)
-  elif dp_profile == DP_ACCEL_SPORT:
-    a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V_SPORT)
-    a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V_SPORT)
-  else:
-    a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V)
-    a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V)
-  return a_cruise_min, a_cruise_max
+def dp_calc_cruise_accel_limits(v_ego, dp_profile, CP):
+  if CP.carFingerprint in TSS2_CAR:
+    if dp_profile == DP_ACCEL_ECO:
+      a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V_ECO)
+      a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V_ECO)
+    elif dp_profile == DP_ACCEL_SPORT:
+      a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V_SPORT)
+      a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V_SPORT)
+    else:
+      a_cruise_min = interp(v_ego, _DP_CRUISE_MIN_BP, _DP_CRUISE_MIN_V)
+      a_cruise_max = interp(v_ego, _DP_CRUISE_MAX_BP, _DP_CRUISE_MAX_V)
+    return a_cruise_min, a_cruise_max
 
-def get_max_accel(v_ego):
-  return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
+  else:
+    if dp_profile == DP_ACCEL_ECO:
+      a_cruise_min = interp(v_ego, _dp_cruise_min_bp, _dp_cruise_min_v_eco)
+      a_cruise_max = interp(v_ego, _dp_cruise_max_bp, _dp_cruise_max_v_eco)
+    elif dp_profile == DP_ACCEL_SPORT:
+      a_cruise_min = interp(v_ego, _dp_cruise_min_bp, _dp_cruise_min_v_sport)
+      a_cruise_max = interp(v_ego, _dp_cruise_max_bp, _dp_cruise_max_v_sport)
+    else:
+      a_cruise_min = interp(v_ego, _dp_cruise_min_bp, _dp_cruise_min_v)
+      a_cruise_max = interp(v_ego, _dp_cruise_max_bp, _dp_cruise_max_v)
+    return a_cruise_min, a_cruise_max
+
+def get_max_accel(v_ego, CP):
+  if CP.carName == "toyota":
+    if CP.carFingerprint in TSS2_CAR:
+      a_cruise_max_vals = [1.4, 1.2, 0.7, 0.6]  # Sets the limits of the planner accel, PID may exceed
+      a_cruise_max_bp = [0., 10., 25., 40.]
+    else:
+      a_cruise_max_vals = [1.8, 1.3, 0.8, 0.6]  # Sets the limits of the planner accel, PID may exceed
+      a_cruise_max_bp = [0., 10., 25., 40.]
+    return interp(v_ego, a_cruise_max_bp, a_cruise_max_vals)
+  else:
+    return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
 
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
@@ -127,7 +161,7 @@ class LongitudinalPlanner:
 
     # dp
     self.dp_accel_profile_ctrl = False
-    self.dp_accel_profile = DP_ACCEL_ECO
+    self.dp_accel_profile = DP_ACCEL_NORMAL
     self.dp_following_profile_ctrl = False
     self.dp_following_profile = 0
     self.cruise_source = 'cruise'
@@ -298,17 +332,11 @@ class LongitudinalPlanner:
       return desired_tf
     if self.dp_following_profile_ctrl:
       if self.dp_following_profile == 0:
-        x_vel =  [0,    3.,    13.89,  25.0,  41.67]
-        y_dist = [1.24, 1.34,  1.36,   1.26,   1.32]
-        desired_tf = np.interp(v_ego, x_vel, y_dist)
+        desired_tf = 0.9
       elif self.dp_following_profile == 1:
-        x_vel =  [0,    5.556,   13.89,   41.67]
-        y_dist = [1.3,  1.460,   1.5000,  1.68]
-        desired_tf = np.interp(v_ego, x_vel, y_dist)
+        desired_tf = 1.45
       elif self.dp_following_profile == 2:
-        x_vel =  [0,    5.556,  19.7,   41.67]
-        y_dist = [1.4,  1.54,   2.0,    2.2]
-        desired_tf = np.interp(v_ego, x_vel, y_dist)
+        desired_tf = 1.8
     return desired_tf
 
   def update(self, sm):
@@ -342,13 +370,13 @@ class LongitudinalPlanner:
 
     if self.mpc.mode == 'acc':
       if self.dp_accel_profile_ctrl:
-        accel_limits = dp_calc_cruise_accel_limits(v_ego, self.dp_accel_profile)
+        accel_limits = dp_calc_cruise_accel_limits(v_ego, self.dp_accel_profile, self.CP)
       else:
-        accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+        accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego, self.CP)]
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:
       if sm['dragonConf'].dpE2EConditional and sm['dragonConf'].dpE2EConditionalAdaptAp and self.dp_accel_profile_ctrl:
-        _, accel_max = dp_calc_cruise_accel_limits(v_ego, self.dp_accel_profile)
+        _, accel_max = dp_calc_cruise_accel_limits(v_ego, self.dp_accel_profile, self.CP)
         accel_limits = [MIN_ACCEL, accel_max]
       else:
         accel_limits = [MIN_ACCEL, MAX_ACCEL]
