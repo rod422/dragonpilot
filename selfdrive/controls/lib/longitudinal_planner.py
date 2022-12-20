@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
+from cereal import car
 from common.numpy_fast import clip, interp
 
 import cereal.messaging as messaging
@@ -19,6 +20,9 @@ from selfdrive.controls.lib.speed_limit_controller import SpeedLimitController, 
 from selfdrive.controls.lib.turn_speed_controller import TurnSpeedController
 from selfdrive.controls.lib.events import Events
 from system.swaglog import cloudlog
+
+EventName = car.CarEvent.EventName
+
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
@@ -62,12 +66,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
-    self.params = Params()
-    self.param_read_counter = 0
-
     self.mpc = LongitudinalMpc()
-    self.read_param()
-
     self.fcw = False
 
     self.a_desired = init_a
@@ -85,9 +84,9 @@ class LongitudinalPlanner:
     self.turn_speed_controller = TurnSpeedController()
     self.events = Events()
 
-  def read_param(self):
-    e2e = self.params.get_bool('ExperimentalMode') and self.CP.openpilotLongitudinalControl
-    self.mpc.mode = 'blended' if e2e else 'acc'
+    self.params = Params()
+    self.e2e_status_timer = 0
+    self.e2e_status_set = False
 
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -105,10 +104,8 @@ class LongitudinalPlanner:
       j = np.zeros(len(T_IDXS_MPC))
     return x, v, a, j
 
-  def update(self, sm, read=True):
-    if self.param_read_counter % 50 == 0 and read:
-      self.read_param()
-    self.param_read_counter += 1
+  def update(self, sm):
+    self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise
@@ -172,6 +169,8 @@ class LongitudinalPlanner:
     a_prev = self.a_desired
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired_filter.x = self.v_desired_filter.x + DT_MDL * (self.a_desired + a_prev) / 2.0
+
+    self.update_events(sm)
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
@@ -245,3 +244,18 @@ class LongitudinalPlanner:
     source = min(v_solutions, key=v_solutions.get)
 
     return source, a_solutions[source], v_solutions[source]
+
+  def update_events(self, sm):
+    e2e_long_status = sm['e2eLongState'].status
+
+    if e2e_long_status == 3:
+      self.events.add(EventName.e2eLongStart)
+    elif e2e_long_status == 2:
+      self.e2e_status_timer += 1
+      if self.e2e_status_timer > 30 and not self.e2e_status_set:
+        self.e2e_status_timer = 0
+        self.e2e_status_set = True
+        self.events.add(EventName.e2eLongStart)
+    else:
+      self.e2e_status_timer = 0
+      self.e2e_status_set = False

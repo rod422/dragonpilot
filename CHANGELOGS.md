@@ -1,3 +1,22 @@
+sunnypilot - Version Latest (2022-12-16)
+========================
+* UPDATED: Synced with commaai's master branch - 2022.12.16-06:31:00:GMT - 0.9.1
+* NEW❗: GM:
+  * NEW❗: Gap Adjust Cruise support - Chill, Normal, Aggressive
+  * NEW❗: Experimental Mode: Hold DISTANCE button on the steering wheel for 0.5 second to switch between Experimental Mode and Chill Mode
+* REMOVED❌: Toytoa: SnG Hack
+  * This method is not recommended and may cause some cars to not behave as expected
+  * SDSU is strongly recommended to enable SnG for Toyota vehicles without SnG from factory
+* commaai: radard: add missing accel data for vision-only leads (commaai/openpilot#26619) - pending PR
+  * VOACC performance is drastically improved when using Chill Mode
+* IMPROVED: M.A.D.S. events handling
+* IMPROVED: UI: screen recorder button change
+* IMPROVED: OpenStreetMap Offline Database optimization
+* FIXED: Toyota: vehicles' LKAS button no longer has a delay with toggling M.A.D.S.
+* FIXED: Toyota: brake pedal press at standstill causing Cruise Fault
+* FIXED: Volkswagen MQB: reduce Camera Malfunction occurrences (requires testing)
+* Bug fixes and performance improvements
+
 sunnypilot - Version Latest (2022-12-10)
 ========================
 * IMPROVED: NEW❗ Developer UI design

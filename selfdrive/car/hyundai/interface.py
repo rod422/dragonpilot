@@ -12,6 +12,7 @@ from selfdrive.car.disable_ecu import disable_ecu
 Ecu = car.CarParams.Ecu
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
+GearShifter = car.CarState.GearShifter
 ENABLE_BUTTONS = (Buttons.RES_ACCEL, Buttons.SET_DECEL, Buttons.CANCEL)
 BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: ButtonType.decelCruise,
                 Buttons.GAP_DIST: ButtonType.gapAdjustCruise, Buttons.CANCEL: ButtonType.cancel}
@@ -115,8 +116,8 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.67
       ret.steerRatio = 14.00 * 1.15
       tire_stiffness_factor = 0.385
-    elif candidate == CAR.TUCSON_HYBRID_4TH_GEN:
-      ret.mass = 1680. + STD_CARGO_KG  # average of all 3 trims
+    elif candidate in (CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN):
+      ret.mass = 1630. + STD_CARGO_KG  # average
       ret.wheelbase = 2.756
       ret.steerRatio = 16.
       tire_stiffness_factor = 0.385
@@ -192,6 +193,10 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 13.27 # steering ratio according to Kia News https://www.kiamedia.com/us/en/models/sorento-phev/2022/specifications
 
     # Genesis
+    elif candidate == CAR.GENESIS_GV60_EV_1ST_GEN:
+      ret.mass = 2205 + STD_CARGO_KG
+      ret.wheelbase = 2.9
+      ret.steerRatio = 12.6 # https://www.motor1.com/reviews/586376/2023-genesis-gv60-first-drive/#:~:text=Relative%20to%20the%20related%20Ioniq,5%2FEV6%27s%2014.3%3A1.
     elif candidate == CAR.GENESIS_G70:
       ret.steerActuatorDelay = 0.1
       ret.mass = 1640.0 + STD_CARGO_KG
@@ -236,6 +241,7 @@ class CarInterface(CarInterfaceBase):
     ret.stoppingControl = True
     ret.startingState = True
     ret.vEgoStarting = 0.1
+    ret.vEgoStopping = 0.1
     ret.startAccel = 1.0
     ret.longitudinalActuatorDelayLowerBound = 0.5
     ret.longitudinalActuatorDelayUpperBound = 0.5
@@ -244,8 +250,14 @@ class CarInterface(CarInterfaceBase):
     if candidate in CANFD_CAR:
       bus = 5 if ret.flags & HyundaiFlags.CANFD_HDA2 else 4
       ret.enableBsm = 0x1e5 in fingerprint[bus]
+
+      if 0x1fa in fingerprint[bus]:
+        ret.flags |= HyundaiFlags.SP_NAV_MSG.value
     else:
       ret.enableBsm = 0x58b in fingerprint[0]
+
+      if 0x544 in fingerprint[0]:
+        ret.flags |= HyundaiFlags.SP_NAV_MSG.value
 
     # *** panda safety config ***
     if candidate in CANFD_CAR:
@@ -280,9 +292,6 @@ class CarInterface(CarInterfaceBase):
       if candidate in NON_SCC_CAR:
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_NON_SCC
 
-      if 0x544 in fingerprint[0]:
-        ret.flags |= HyundaiFlags.SP_CAN_NAV_MSG.value
-
     if ret.openpilotLongitudinalControl:
       ret.safetyConfigs[-1].safetyParam |= Panda.FLAG_HYUNDAI_LONG
     if candidate in HYBRID_CAR:
@@ -310,6 +319,10 @@ class CarInterface(CarInterfaceBase):
         addr, bus = 0x730, 5
       disable_ecu(logcan, sendcan, bus=bus, addr=addr, com_cont_req=b'\x28\x83\x01')
 
+    # for blinkers
+    if CP.flags & HyundaiFlags.ENABLE_BLINKERS:
+      disable_ecu(logcan, sendcan, bus=5, addr=0x7B1, com_cont_req=b'\x28\x83\x01')
+
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)
 
@@ -321,30 +334,11 @@ class CarInterface(CarInterfaceBase):
 
     buttonEvents = []
 
-    #if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-    #  be = car.CarState.ButtonEvent.new_message()
-    #  be.pressed = False
-    #  be.type = ButtonType.setCruise
-    #  buttonEvents.append(be)
-
     if self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = ButtonType.unknown
-      if self.CS.cruise_buttons[-1] != 0:
-        be.pressed = True
-        but = self.CS.cruise_buttons[-1]
-      else:
-        be.pressed = False
-        but = self.CS.prev_cruise_buttons
-      if but == Buttons.RES_ACCEL:
-        be.type = ButtonType.accelCruise
-      elif but == Buttons.SET_DECEL:
-        be.type = ButtonType.decelCruise
-      elif but == Buttons.GAP_DIST:
-        be.type = ButtonType.gapAdjustCruise
-      elif but == Buttons.CANCEL:
-        be.type = ButtonType.cancel
-      buttonEvents.append(be)
+      buttonEvents.append(create_button_event(self.CS.cruise_buttons[-1], self.CS.prev_cruise_buttons, BUTTONS_DICT))
+      # Handle CF_Clu_CruiseSwState changing buttons mid-press
+      if self.CS.cruise_buttons[-1] != 0 and self.CS.prev_cruise_buttons != 0:
+        buttonEvents.append(create_button_event(0, self.CS.prev_cruise_buttons, BUTTONS_DICT))
 
     # MADS BUTTON
     if self.CS.out.madsEnabled != self.CS.madsEnabled:
@@ -353,33 +347,14 @@ class CarInterface(CarInterfaceBase):
       be.type = ButtonType.altButton1
       buttonEvents.append(be)
 
-    if self.CS.main_buttons[-1] != self.CS.prev_main_buttons:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = ButtonType.unknown
-      if self.CS.main_buttons[-1] != 0:
-        be.pressed = True
-        but = self.CS.main_buttons[-1]
-      else:
-        be.pressed = False
-        but = self.CS.prev_main_buttons
-      if but == 1:
-        be.type = ButtonType.setCruise
-      buttonEvents.append(be)
-
     ret.buttonEvents = buttonEvents
-
-    extraGears = []
-    if not self.CS.CP.openpilotLongitudinalControl:
-      extraGears = [car.CarState.GearShifter.sport, car.CarState.GearShifter.low, car.CarState.GearShifter.manumatic]
 
     # On some newer model years, the CANCEL button acts as a pause/resume button based on the PCM state
     # To avoid re-engaging when openpilot cancels, check user engagement intention via buttons
     # Main button also can trigger an engagement on these cars
     allow_enable = any(btn in ENABLE_BUTTONS for btn in self.CS.cruise_buttons) or any(self.CS.main_buttons)
-    events = self.create_common_events(ret, extra_gears=extraGears, pcm_enable=False, allow_enable=allow_enable)
-
-    if self.CS.brake_error:
-      events.add(EventName.brakeUnavailable)
+    events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low, GearShifter.manumatic],
+                                       pcm_enable=False, allow_enable=allow_enable)
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
     if ret.vEgo < (self.CP.minSteerSpeed + 2.) and self.CP.minSteerSpeed > 10.:
@@ -402,13 +377,26 @@ class CarInterface(CarInterfaceBase):
       self.CS.disengageByBrake = False
       ret.disengageByBrake = False
 
-    for b in ret.buttonEvents:
+    if self.CP.pcmCruise:
+      # do disable on button down
+      if any(self.CS.main_buttons) and not ret.cruiseState.enabled:
+        if not self.CS.madsEnabled:
+          events.add(EventName.buttonCancel)
       # do enable on both accel and decel buttons
-      if (b.type in (ButtonType.accelCruise, ButtonType.decelCruise) and not b.pressed and self.CP.pcmCruiseSpeed) or \
-        (self.CS.pcm_enabled and not self.CS.prev_pcm_enabled and allow_enable and not self.CP.pcmCruiseSpeed):
-         enable_pressed = True
-      if b.type == ButtonType.accelCruise and not self.CS.resumeAvailable and (not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed):
-        enable_pressed = False
+      if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled and allow_enable:
+        enable_pressed = True
+
+    for b in ret.buttonEvents:
+      # do disable on button down
+      if b.type == ButtonType.cancel:
+        if not self.CS.madsEnabled:
+          events.add(EventName.buttonCancel)
+        elif not self.cruise_cancelled_btn:
+          self.cruise_cancelled_btn = True
+          events.add(EventName.manualLongitudinalRequired)
+      # do enable on both accel and decel buttons
+      if b.type in (ButtonType.accelCruise, ButtonType.decelCruise) and not b.pressed and not self.CP.pcmCruise:
+        enable_pressed = self.CS.resumeAllowed
       # do disable on MADS button if ACC is disabled
       if b.type == ButtonType.altButton1 and b.pressed:
         if not self.CS.madsEnabled: # disabled MADS
@@ -419,18 +407,14 @@ class CarInterface(CarInterfaceBase):
         else: # enabled MADS
           if not ret.cruiseState.enabled:
             enable_pressed = True
-      # do disable on button down
-      if (b.type == ButtonType.cancel and b.pressed and not self.CP.pcmCruise) or \
-        (b.type in (ButtonType.cancel, ButtonType.setCruise) and not (self.CS.pcm_enabled and not self.CS.prev_pcm_enabled) and not self.CS.pcm_enabled and self.CP.pcmCruise):
-        if not self.CS.madsEnabled:
-          events.add(EventName.buttonCancel)
-        elif ret.cruiseState.enabled:
-          events.add(EventName.manualLongitudinalRequired)
-    if ((ret.cruiseState.enabled and self.CP.pcmCruiseSpeed) or (self.CS.pcm_enabled and not self.CP.pcmCruiseSpeed) or self.CS.madsEnabled) and enable_pressed:
+    if (ret.cruiseState.enabled or self.CS.madsEnabled) and enable_pressed:
       if enable_from_brake:
         events.add(EventName.silentButtonEnable)
       else:
         events.add(EventName.buttonEnable)
+
+    if ret.cruiseState.enabled:
+      self.cruise_cancelled_btn = False
 
     ret.customStockLong = self.CS.update_custom_stock_long(self.CC.cruise_button, self.CC.final_speed_kph,
                                                            self.CC.v_cruise_kph_prev, self.CC.target_speed,

@@ -6,7 +6,16 @@ def create_buttons(packer, bus, idx, button):
   values = {
     "ACCButtons": button,
     "RollingCounter": idx,
+    "ACCAlwaysOne": 1,
+    "DistanceButton": 0,
   }
+
+  checksum = 240 + int(values["ACCAlwaysOne"] * 0xf)
+  checksum += values["RollingCounter"] * (0x4ef if values["ACCAlwaysOne"] != 0 else 0x3f0)
+  checksum -= int(values["ACCButtons"] - 1) << 4  # not correct if value is 0
+  checksum -= 2 * values["DistanceButton"]
+
+  values["SteeringButtonChecksum"] = checksum
   return packer.make_can_msg("ASCMSteeringButton", bus, values)
 
 
@@ -83,14 +92,14 @@ def create_friction_brake_command(packer, bus, apply_brake, idx, enabled, near_s
   return packer.make_can_msg("EBCMFrictionBrakeCmd", bus, values)
 
 
-def create_acc_dashboard_command(packer, bus, enabled, target_speed_kph, lead_car_in_sight, fcw):
+def create_acc_dashboard_command(packer, bus, enabled, target_speed_kph, lead_car_in_sight, fcw, gac_set):
   target_speed = min(target_speed_kph, 255)
 
   values = {
     "ACCAlwaysOne": 1,
     "ACCResumeButton": 0,
     "ACCSpeedSetpoint": target_speed,
-    "ACCGapLevel": 3 * enabled,  # 3 "far", 0 "inactive"
+    "ACCGapLevel": gac_set if enabled else 0,
     "ACCCmdActive": enabled,
     "ACCAlwaysOne2": 1,
     "ACCLeadCar": lead_car_in_sight,

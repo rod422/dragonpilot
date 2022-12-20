@@ -147,6 +147,7 @@ enum class EventName_baa8c5d505f727de: uint16_t {
   SPEED_LIMIT_VALUE_CHANGE,
   E2E_LONG_STOP,
   E2E_LONG_START,
+  CONTROLS_MISMATCH_LONG,
 };
 CAPNP_DECLARE_ENUM(EventName, baa8c5d505f727de);
 CAPNP_DECLARE_SCHEMA(9da4fa09e052903c);
@@ -228,6 +229,7 @@ enum class AudibleAlert_f5a5e26c954e339e: uint16_t {
   PROMPT,
   PROMPT_REPEAT,
   PROMPT_DISTRACTED,
+  PROMPT_STARTING,
 };
 CAPNP_DECLARE_ENUM(AudibleAlert, f5a5e26c954e339e);
 CAPNP_DECLARE_SCHEMA(8c69372490aaa9da);
@@ -275,6 +277,7 @@ CAPNP_DECLARE_SCHEMA(d661512be2def77f);
 enum class SteerControlType_d661512be2def77f: uint16_t {
   TORQUE,
   ANGLE,
+  CURVATURE,
 };
 CAPNP_DECLARE_ENUM(SteerControlType, d661512be2def77f);
 CAPNP_DECLARE_SCHEMA(8f162eeb14bfc0ec);
@@ -494,7 +497,7 @@ struct CarControl::Actuators {
 
 
   struct _capnpPrivate {
-    CAPNP_DECLARE_STRUCT_HEADER(e97275a919432828, 4, 0)
+    CAPNP_DECLARE_STRUCT_HEADER(e97275a919432828, 5, 0)
     #if !CAPNP_LITE
     static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
     #endif  // !CAPNP_LITE
@@ -1882,6 +1885,10 @@ public:
   inline bool hasAngularVelocity() const;
   inline  ::capnp::List<float,  ::capnp::Kind::PRIMITIVE>::Reader getAngularVelocity() const;
 
+  inline bool getLeftBlinker() const;
+
+  inline bool getRightBlinker() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -1981,6 +1988,12 @@ public:
   inline void adoptAngularVelocity(::capnp::Orphan< ::capnp::List<float,  ::capnp::Kind::PRIMITIVE>>&& value);
   inline ::capnp::Orphan< ::capnp::List<float,  ::capnp::Kind::PRIMITIVE>> disownAngularVelocity();
 
+  inline bool getLeftBlinker();
+  inline void setLeftBlinker(bool value);
+
+  inline bool getRightBlinker();
+  inline void setRightBlinker(bool value);
+
 private:
   ::capnp::_::StructBuilder _builder;
   template <typename, ::capnp::Kind>
@@ -2042,6 +2055,10 @@ public:
 
   inline float getSpeed() const;
 
+  inline float getCurvature() const;
+
+  inline float getSteerOutputCan() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -2090,6 +2107,12 @@ public:
 
   inline float getSpeed();
   inline void setSpeed(float value);
+
+  inline float getCurvature();
+  inline void setCurvature(float value);
+
+  inline float getSteerOutputCan();
+  inline void setSteerOutputCan(float value);
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -5922,6 +5945,34 @@ inline ::capnp::Orphan< ::capnp::List<float,  ::capnp::Kind::PRIMITIVE>> CarCont
       ::capnp::bounded<5>() * ::capnp::POINTERS));
 }
 
+inline bool CarControl::Reader::getLeftBlinker() const {
+  return _reader.getDataField<bool>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+
+inline bool CarControl::Builder::getLeftBlinker() {
+  return _builder.getDataField<bool>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+inline void CarControl::Builder::setLeftBlinker(bool value) {
+  _builder.setDataField<bool>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS, value);
+}
+
+inline bool CarControl::Reader::getRightBlinker() const {
+  return _reader.getDataField<bool>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+}
+
+inline bool CarControl::Builder::getRightBlinker() {
+  return _builder.getDataField<bool>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+}
+inline void CarControl::Builder::setRightBlinker(bool value) {
+  _builder.setDataField<bool>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS, value);
+}
+
 inline float CarControl::Actuators::Reader::getGas() const {
   return _reader.getDataField<float>(
       ::capnp::bounded<0>() * ::capnp::ELEMENTS);
@@ -6018,6 +6069,34 @@ inline float CarControl::Actuators::Builder::getSpeed() {
 inline void CarControl::Actuators::Builder::setSpeed(float value) {
   _builder.setDataField<float>(
       ::capnp::bounded<6>() * ::capnp::ELEMENTS, value);
+}
+
+inline float CarControl::Actuators::Reader::getCurvature() const {
+  return _reader.getDataField<float>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS);
+}
+
+inline float CarControl::Actuators::Builder::getCurvature() {
+  return _builder.getDataField<float>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS);
+}
+inline void CarControl::Actuators::Builder::setCurvature(float value) {
+  _builder.setDataField<float>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS, value);
+}
+
+inline float CarControl::Actuators::Reader::getSteerOutputCan() const {
+  return _reader.getDataField<float>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS);
+}
+
+inline float CarControl::Actuators::Builder::getSteerOutputCan() {
+  return _builder.getDataField<float>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS);
+}
+inline void CarControl::Actuators::Builder::setSteerOutputCan(float value) {
+  _builder.setDataField<float>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool CarControl::CruiseControl::Reader::getCancel() const {

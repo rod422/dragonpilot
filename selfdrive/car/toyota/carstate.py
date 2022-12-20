@@ -1,3 +1,6 @@
+from collections import deque
+import copy
+
 from cereal import car
 from common.conversions import Conversions as CV
 from common.numpy_fast import mean
@@ -7,7 +10,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR, FEATURES
+from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR, FEATURES
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 _TRAFFIC_SINGAL_MAP = {
@@ -16,6 +19,8 @@ _TRAFFIC_SINGAL_MAP = {
   65: "No overtake",
   66: "No overtake"
 }
+
+PREV_BUTTON_SAMPLES = 9
 
 
 class CarState(CarStateBase):
@@ -36,27 +41,26 @@ class CarState(CarStateBase):
 
     self.low_speed_lockout = False
     self.acc_type = 1
+    self.lkas_hud = {}
 
     self.param_s = Params()
     self.enable_mads = self.param_s.get_bool("EnableMads")
     self.mads_disengage_lateral_on_brake = self.param_s.get_bool("DisengageLateralOnBrake")
     self.acc_mads_combo = self.param_s.get_bool("AccMadsCombo")
     self.below_speed_pause = self.param_s.get_bool("BelowSpeedPause")
-    self.force_sng = self.param_s.get_bool("ToyotaForceSnG")
     self.accEnabled = False
     self.madsEnabled = False
     self.leftBlinkerOn = False
     self.rightBlinkerOn = False
     self.disengageByBrake = False
     self.belowLaneChangeSpeed = True
-    self.mads_enabled = None
-    self.prev_mads_enabled = None
+    self.mads_enabled = False
+    self.prev_mads_enabled = False
     self.lkas_enabled = None
     self.prev_lkas_enabled = None
-    self.cruise_buttons = 0
-    self.prev_cruise_buttons = 0
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
     self.gap_adjust_cruise_tr = 3
     self.param_s.put("GapAdjustCruiseTr", "1")
     self.gap_adjust_cruise_tr_line = 0
@@ -71,15 +75,20 @@ class CarState(CarStateBase):
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
     self.reverse_acc_change = 1
     self.persistLkasIconDisabled = None
+    self.prev_brake_pressed = False
+    self.lta_status = False
+    self.prev_lta_status = False
+    self.lta_status_active = False
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
     # update prevs, update must run once per loop
-    self.prev_cruise_buttons = self.cruise_buttons
     self.prev_mads_enabled = self.mads_enabled
     self.prev_lkas_enabled = self.lkas_enabled
+    self.prev_lta_status = self.lta_status
     self.prev_gap_adjust_cruise_button = self.gap_adjust_cruise_button
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.gap_adjust_cruise = self.param_s.get_bool("GapAdjustCruise")
     self.gap_adjust_cruise_mode = int(self.param_s.get("GapAdjustCruiseMode"))
     self.gap_adjust_cruise_tr = int(self.param_s.get("GapAdjustCruiseTr"))
@@ -115,8 +124,17 @@ class CarState(CarStateBase):
 
     self.belowLaneChangeSpeed = ret.vEgo < LANE_CHANGE_SPEED_MIN and self.below_speed_pause
 
-    self.cruise_buttons = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
-    if self.CP.carFingerprint in FEATURES["use_lta_msg"]:
+    if self.CP.carFingerprint != CAR.PRIUS_V:
+      self.lta_status = cp_cam.vl["LKAS_HUD"]["SET_ME_X02"]
+      if ((self.prev_lta_status == 16 and self.lta_status == 0) or
+          (self.prev_lta_status == 0 and self.lta_status == 16)) and not self.lta_status_active:
+        self.lta_status_active = True
+      if self.prev_lta_status is None:
+        self.prev_lta_status = self.lta_status
+
+    if self.lta_status_active:
+      self.lkas_enabled = self.lta_status
+    elif self.CP.carFingerprint in FEATURES["use_lta_msg"]:
       self.lkas_enabled = cp_cam.vl["LKAS_HUD"]["LDA_ON_MESSAGE"]
       self.persistLkasIconDisabled = cp_cam.vl["LKAS_HUD"]["LKAS_STATUS"] == 1
     elif self.CP.carFingerprint != CAR.PRIUS_V:
@@ -180,13 +198,10 @@ class CarState(CarStateBase):
 
     self.mads_enabled = ret.cruiseState.available
 
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
-
     cp_acc = cp_cam if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR) else cp
 
     if self.CP.carFingerprint in (TSS2_CAR | RADAR_ACC_CAR):
-      self.acc_type = 1 if self.force_sng else cp_acc.vl["ACC_CONTROL"]["ACC_TYPE"]
+      self.acc_type = cp_acc.vl["ACC_CONTROL"]["ACC_TYPE"]
       ret.stockFcw = bool(cp_acc.vl["ACC_HUD"]["FCW"])
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
@@ -204,7 +219,7 @@ class CarState(CarStateBase):
       ret.cruiseState.standstill = False
     elif self.CP.carFingerprint not in (NO_STOP_TIMER_CAR - TSS2_CAR) and not (self.CP.flags & ToyotaFlags.SMART_DSU):
       ret.cruiseState.standstill = self.pcm_acc_status == 7
-    ret.cruiseState.enabled = bool(cp.vl["PCM_CRUISE"]["CRUISE_ACTIVE"])
+    ret.cruiseState.enabled = self.cruiseState_enabled = bool(cp.vl["PCM_CRUISE"]["CRUISE_ACTIVE"])
     ret.cruiseState.nonAdaptive = cp.vl["PCM_CRUISE"]["CRUISE_STATE"] in (1, 2, 3, 4, 5, 6)
 
     if ret.cruiseState.available:
@@ -248,7 +263,12 @@ class CarState(CarStateBase):
       if self.enable_mads:
         if not self.prev_mads_enabled and self.mads_enabled:
           self.madsEnabled = True
-        if self.CP.carFingerprint in FEATURES["use_lta_msg"]:
+        if self.lta_status_active:
+          if self.prev_lkas_enabled == 16 and self.lkas_enabled == 0:
+            self.madsEnabled = False
+          elif self.prev_lkas_enabled == 0 and self.lkas_enabled == 16:
+            self.madsEnabled = True
+        elif self.CP.carFingerprint in FEATURES["use_lta_msg"]:
           if (self.prev_lkas_enabled != 1 and self.lkas_enabled == 1) or \
              (self.prev_lkas_enabled != 2 and self.lkas_enabled == 2):
             self.madsEnabled = not self.madsEnabled
@@ -258,9 +278,9 @@ class CarState(CarStateBase):
           elif self.prev_lkas_enabled == 1 and not self.lkas_enabled:
             self.madsEnabled = False
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
       self.e2e_long_hold_counter = 0
@@ -272,20 +292,16 @@ class CarState(CarStateBase):
 
     ret.endToEndLong = self.e2eLongStatus
 
-    if self.prev_cruise_buttons != 0: # CANCEL
-      if self.cruise_buttons == 0:
-        if not self.enable_mads:
-          self.madsEnabled = False
-    if ret.brakePressed:
+    if (not ret.cruiseState.enabled and self.prev_cruiseState_enabled) or (ret.brakePressed and (not self.prev_brake_pressed or not ret.standstill)):
       if not self.enable_mads:
         self.madsEnabled = False
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
 
     ret.steerFaultTemporary = False
     ret.steerFaultPermanent = False
@@ -309,6 +325,9 @@ class CarState(CarStateBase):
     if self.CP.enableBsm:
       ret.leftBlindspot = (cp.vl["BSM"]["L_ADJACENT"] == 1) or (cp.vl["BSM"]["L_APPROACHING"] == 1)
       ret.rightBlindspot = (cp.vl["BSM"]["R_ADJACENT"] == 1) or (cp.vl["BSM"]["R_APPROACHING"] == 1)
+
+    if self.CP.carFingerprint != CAR.PRIUS_V:
+      self.lkas_hud = copy.copy(cp_cam.vl["LKAS_HUD"])
 
     self._update_traffic_signals(cp_cam)
     ret.cruiseState.speedLimit = self._calculate_speed_limit()
@@ -511,6 +530,21 @@ class CarState(CarStateBase):
     signals = []
     checks = []
 
+    if CP.carFingerprint != CAR.PRIUS_V:
+      signals += [
+        ("LANE_SWAY_FLD", "LKAS_HUD"),
+        ("LANE_SWAY_BUZZER", "LKAS_HUD"),
+        ("LANE_SWAY_WARNING", "LKAS_HUD"),
+        ("LANE_SWAY_SENSITIVITY", "LKAS_HUD"),
+        ("LANE_SWAY_TOGGLE", "LKAS_HUD"),
+        ("LKAS_STATUS", "LKAS_HUD"),
+        ("LDA_ON_MESSAGE", "LKAS_HUD"),
+        ("SET_ME_X02", "LKAS_HUD"),
+      ]
+      checks += [
+        ("LKAS_HUD", 1),
+      ]
+
     if CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR):
       signals += [
         ("PRECOLLISION_ACTIVE", "PRE_COLLISION"),
@@ -523,15 +557,6 @@ class CarState(CarStateBase):
         ("PRE_COLLISION", 33),
         ("ACC_CONTROL", 33),
         ("ACC_HUD", 1),
-      ]
-
-    if CP.carFingerprint != CAR.PRIUS_V:
-      signals += [
-        ("LKAS_STATUS", "LKAS_HUD"),
-        ("LDA_ON_MESSAGE", "LKAS_HUD"),
-      ]
-      checks += [
-        ("LKAS_HUD", 1),
       ]
 
     # Include traffic singal signals.

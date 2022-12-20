@@ -37,16 +37,19 @@ class CarState(CarStateBase):
     self.rightBlinkerOn = False
     self.disengageByBrake = False
     self.belowLaneChangeSpeed = True
-    self.mads_enabled = None
-    self.prev_mads_enabled = None
+    self.mads_enabled = False
+    self.prev_mads_enabled = False
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
+    self.prev_brake_pressed = False
 
   def update(self, cp, cp_cam):
 
     ret = car.CarState.new_message()
 
     self.prev_mads_enabled = self.mads_enabled
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
 
     # lock info
@@ -103,7 +106,7 @@ class CarState(CarStateBase):
     cp_cruise = cp_cam if self.CP.carFingerprint in RAM_CARS else cp
 
     ret.cruiseState.available = cp_cruise.vl["DAS_3"]["ACC_AVAILABLE"] == 1
-    ret.cruiseState.enabled = cp_cruise.vl["DAS_3"]["ACC_ACTIVE"] == 1
+    ret.cruiseState.enabled = self.cruiseState_enabled = cp_cruise.vl["DAS_3"]["ACC_ACTIVE"] == 1
     ret.cruiseState.speed = cp_cruise.vl["DAS_4"]["ACC_SET_SPEED_KPH"] * CV.KPH_TO_MS
     ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
     ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
@@ -111,32 +114,29 @@ class CarState(CarStateBase):
 
     self.mads_enabled = ret.cruiseState.available
 
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
-
     if ret.cruiseState.available:
       if self.enable_mads:
         if not self.prev_mads_enabled and self.mads_enabled:
           self.madsEnabled = True
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
 
     ret.endToEndLong = self.e2eLongStatus
 
-    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.enable_mads:
+    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.CP.pcmCruiseSpeed:
       if self.prev_cruiseState_enabled:  # CANCEL
         if not ret.cruiseState.enabled:
           if not self.enable_mads:
             self.madsEnabled = False
-      if ret.brakePressed:
+      if ret.brakePressed and (not self.prev_brake_pressed or not ret.standstill):
         if not self.enable_mads:
           self.madsEnabled = False
 
-    if self.CP.pcmCruise and self.CP.minEnableSpeed > 0:
+    if self.CP.pcmCruise and self.CP.minEnableSpeed > 0 and self.CP.pcmCruiseSpeed:
       if ret.gasPressed and not ret.cruiseState.enabled:
         self.accEnabled = False
       self.accEnabled = ret.cruiseState.enabled or self.accEnabled
@@ -147,9 +147,9 @@ class CarState(CarStateBase):
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
 
     if self.CP.carFingerprint in RAM_CARS:
       self.auto_high_beam = cp_cam.vl["DAS_6"]['AUTO_HIGH_BEAM_ON']  # Auto High Beam isn't Located in this message on chrysler or jeep currently located in 729 message

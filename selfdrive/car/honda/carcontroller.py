@@ -158,7 +158,6 @@ class CarController:
     self.speed_diff = 0
     self.e2e_long_status = 0
     self.e2e_long_status_timer = 0
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
   def update(self, CC, CS):
     self.sm.update(0)
@@ -173,7 +172,6 @@ class CarController:
     self.v_cruise_kph_prev = self.sm['controlsState'].vCruise
     self.get_speed_limit()
     self.e2e_long_status = self.sm['e2eLongState'].status
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -274,9 +272,7 @@ class CarController:
     if self.e2e_long_status != 2:
       self.e2e_long_status_timer = cur_time
 
-    e2e_long_chime = self.e2e_long_alert and self.e2e_long_status == 2 and not hud_control.leadVisible and \
-                     not CS.out.cruiseState.enabled and (CS.out.brakePressed or CS.out.brakeHoldActive) and \
-                     not CS.out.gasPressed and CS.out.standstill and (0.3 < (cur_time - self.e2e_long_status_timer) <= 0.4)
+    e2e_long_chime = (self.e2e_long_status == 2 and (0.3 < (cur_time - self.e2e_long_status_timer) <= 0.4)) or self.e2e_long_status == 3
 
     if not self.CP.openpilotLongitudinalControl:
       if self.frame % 2 == 0 and self.CP.carFingerprint not in HONDA_BOSCH_RADARLESS:  # radarless cars don't have supplemental message
@@ -347,6 +343,7 @@ class CarController:
     new_actuators.gas = self.gas
     new_actuators.brake = self.brake
     new_actuators.steer = self.last_steer
+    new_actuators.steerOutputCan = apply_steer
 
     self.frame += 1
     return new_actuators, can_sends

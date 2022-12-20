@@ -91,7 +91,6 @@ class CarController:
     self.speed_diff = 0
     self.e2e_long_status = 0
     self.e2e_long_status_timer = 0
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
   def update(self, CC, CS):
     self.sm.update(0)
@@ -106,14 +105,12 @@ class CarController:
     self.v_cruise_kph_prev = self.sm['controlsState'].vCruise
     self.get_speed_limit()
     self.e2e_long_status = self.sm['e2eLongState'].status
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
     actuators = CC.actuators
     hud_control = CC.hudControl
 
     # steering torque
-    steer = actuators.steer
-    new_steer = int(round(steer * self.params.STEER_MAX))
+    new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
 
     if not CC.latActive:
@@ -172,9 +169,7 @@ class CarController:
     if self.e2e_long_status != 2:
       self.e2e_long_status_timer = cur_time
 
-    e2e_long_chime = self.e2e_long_alert and self.e2e_long_status == 2 and not hud_control.leadVisible and \
-                     not CS.out.cruiseState.enabled and (CS.out.brakePressed or CS.out.brakeHoldActive) and \
-                     not CS.out.gasPressed and CS.out.standstill and (0.3 < (cur_time - self.e2e_long_status_timer) <= 1.3)
+    e2e_long_chime = (self.e2e_long_status == 2 and (0.3 < (cur_time - self.e2e_long_status_timer) <= 1.3)) or self.e2e_long_status == 3
 
     can_sends = []
 
@@ -182,10 +177,15 @@ class CarController:
 
     # tester present - w/ no response (keeps relevant ECU disabled)
     if self.frame % 100 == 0 and not ((self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value) or enhanced_scc) and self.CP.openpilotLongitudinalControl:
+      # for longitudinal control, either radar or ADAS driving ECU
       addr, bus = 0x7d0, 0
       if self.CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
       can_sends.append([addr, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", bus])
+
+      # for blinkers
+      if self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:
+        can_sends.append([0x7b1, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 5])
 
     # >90 degree steering fault prevention
     # Count up to MAX_ANGLE_FRAMES, at which point we need to cut torque to avoid a steering fault
@@ -216,6 +216,10 @@ class CarController:
       # LFA and HDA icons
       if self.frame % 5 == 0 and (not hda2 or hda2_long):
         can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CP, CC.enabled and CS.out.cruiseState.enabled, CC.latActive, CS.madsEnabled))
+
+      # blinkers
+      if hda2 and self.CP.flags & HyundaiFlags.ENABLE_BLINKERS:
+        can_sends.extend(hyundaicanfd.create_spas_messages(self.packer, self.frame, CC.leftBlinker, CC.rightBlinker))
 
       if self.CP.openpilotLongitudinalControl:
         if hda2:
@@ -305,6 +309,7 @@ class CarController:
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / self.params.STEER_MAX
+    new_actuators.steerOutputCan = apply_steer
     new_actuators.accel = accel
 
     self.frame += 1

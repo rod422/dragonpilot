@@ -115,8 +115,7 @@ def main(sm=None, pm=None):
   params_reader = Params()
   # wait for stats about the car to come in from controls
   cloudlog.info("paramsd is waiting for CarParams")
-  CP = car.CarParams.from_bytes(params_reader.get("CarParamsSnG", block=True) if not params_reader.get_bool("ToyotaForceSnG") else
-                                params_reader.get("CarParams", block=True))
+  CP = car.CarParams.from_bytes(params_reader.get("CarParams", block=True))
   cloudlog.info("paramsd got CarParams")
 
   min_sr, max_sr = 0.5 * CP.steerRatio, 2.0 * CP.steerRatio

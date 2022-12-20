@@ -79,11 +79,9 @@ interfaces = load_interfaces(interface_names)
 def fingerprint(logcan, sendcan, num_pandas):
   fixed_fingerprint = os.environ.get('FINGERPRINT', "")
   skip_fw_query = os.environ.get('SKIP_FW_QUERY', False)
-  is_toyota_sng = Params().get("CarModel") is not None and \
-                  (Params().get_bool("ToyotaForceSnG") and Params().get("CarParamsCacheSnG") is not None and Params().get("CarVinSnG") is not None)
   ecu_rx_addrs = set()
 
-  if not skip_fw_query and not is_toyota_sng:
+  if not skip_fw_query:
     # Vin query only reliably works through OBDII
     bus = 1
 
@@ -116,7 +114,6 @@ def fingerprint(logcan, sendcan, num_pandas):
     vin = VIN_UNKNOWN
   cloudlog.warning("VIN %s", vin)
   Params().put("CarVin", vin)
-  Params().put("CarVinSnG", vin)
 
   finger = gen_empty_fingerprint()
   candidate_cars = {i: all_legacy_fingerprint_cars() for i in [0, 1]}  # attempt fingerprint on both bus 0 and 1
@@ -177,25 +174,38 @@ def fingerprint(logcan, sendcan, num_pandas):
 
 
 def is_connected_to_internet(timeout=5):
-  attempts = 0
-  while attempts < 3:
-    try:
-      requests.get("https://sentry.io", timeout=timeout)
-      return True
-    except Exception:
-      attempts += 1
-  return False
+  try:
+    requests.get("https://sentry.io", timeout=timeout)
+    return True
+  except Exception:
+    return False
 
 
 def crash_log(candidate):
-  if is_connected_to_internet():
-    sentry.capture_warning("fingerprinted %s" % candidate)
+  no_internet = 0
+  while True:
+    if is_connected_to_internet():
+      sentry.capture_warning("fingerprinted %s" % candidate)
+      break
+    else:
+      no_internet += 1
+      if no_internet >= 2:
+        break
+      time.sleep(600)
 
 
 def crash_log2(fingerprints, fw):
-  if is_connected_to_internet():
-    sentry.capture_warning("car doesn't match any fingerprints: %s" % fingerprints)
-    sentry.capture_warning("car doesn't match any fw: %s" % fw)
+  no_internet = 0
+  while True:
+    if is_connected_to_internet():
+      sentry.capture_warning("car doesn't match any fingerprints: %s" % fingerprints)
+      sentry.capture_warning("car doesn't match any fw: %s" % fw)
+      break
+    else:
+      no_internet += 1
+      if no_internet >= 2:
+        break
+      time.sleep(600)
 
 
 def get_car(logcan, sendcan, num_pandas=1):

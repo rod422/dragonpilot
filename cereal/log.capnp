@@ -651,15 +651,17 @@ struct ControlsState @0x97ff69c53601abf1 {
 
   cumLagMs @15 :Float32;
   canErrorCounter @57 :UInt32;
-  lateralState @65 :Text;
+  lateralState @66 :Text;
 
   lateralControlState :union {
     indiState @52 :LateralINDIState;
     pidState @53 :LateralPIDState;
-    lqrState @55 :LateralLQRState;
     angleState @58 :LateralAngleState;
     debugState @59 :LateralDebugState;
     torqueState @60 :LateralTorqueState;
+    curvatureState @65 :LateralCurvatureState;
+
+    lqrStateDEPRECATED @55 :LateralLQRState;
   }
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
@@ -742,6 +744,18 @@ struct ControlsState @0x97ff69c53601abf1 {
     output @2 :Float32;
     saturated @3 :Bool;
     steeringAngleDesiredDeg @4 :Float32;
+  }
+
+  struct LateralCurvatureState {
+    active @0 :Bool;
+    actualCurvature @1 :Float32;
+    desiredCurvature @2 :Float32;
+    error @3 :Float32;
+    p @4 :Float32;
+    i @5 :Float32;
+    f @6 :Float32;
+    output @7 :Float32;
+    saturated @8 :Bool;
   }
 
   struct LateralDebugState {
@@ -2041,6 +2055,12 @@ struct NavRoute {
   }
 }
 
+struct MapRenderState {
+  locationMonoTime @0 :UInt64;
+  renderTime @1 :Float32;
+  frameId @2: UInt32;
+}
+
 struct NavModelData {
   frameId @0 :UInt32;
   modelExecutionTime @1 :Float32;
@@ -2128,8 +2148,8 @@ struct Event {
     modelV2 @75 :ModelDataV2;
     driverStateV2 @92 :DriverStateV2;
     navModel @104 :NavModelData;
-    liveMapData @105: LiveMapData;
-    e2eLongState @106: E2eLongState;
+    liveMapData @106: LiveMapData;
+    e2eLongState @107: E2eLongState;
 
     # camera stuff, each camera state has a matching encode idx
     roadCameraState @2 :FrameData;
@@ -2157,6 +2177,7 @@ struct Event {
     navInstruction @82 :NavInstruction;
     navRoute @83 :NavRoute;
     navThumbnail @84: Thumbnail;
+    mapRenderState @105: MapRenderState;
 
     # UI services
     userFlag @93 :UserFlag;

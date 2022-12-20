@@ -7,20 +7,18 @@
 #sudo apt-get install expat
 
 # Add required path variables to environment
-export EXEC_DIR=/data/media/0/osm/v0.7.57/
-export SOURCE_FILE_ROOT=osm-3s_v0.7.57
-export GZ_FILE=${SOURCE_FILE_ROOT}.tar.xz
+export OSM_ROOT=/data/media/0/osm
+export OSM_VERSION=0.7.57
+export GZ_FILE=osm-3s_v${OSM_VERSION}.tar.xz
+export OSM_DIR=${OSM_ROOT}/v${OSM_VERSION}
 # export DB_DIR=/data/osm/db/
 
 # Download and extract overpass library
-cd /data/media/0/
-if [ ! -d /data/media/0/osm ]; then
-  mkdir osm
+
+if [ ! -d ${OSM_ROOT} ]; then
+  mkdir -p ${OSM_ROOT}
 fi
-cd /data/media/0/osm
-#wget http://dev.overpass-api.de/releases/$GZ_FILE
-cp -f /data/openpilot/selfdrive/mapd/assets/$GZ_FILE .
-tar -vxf $GZ_FILE
+tar -vxf /data/openpilot/selfdrive/mapd/assets/${GZ_FILE} -C ${OSM_ROOT}
 
 # Configure and install overpass
 #cd $(ls | grep $SOURCE_FILE_ROOT\.[0-9]*)
@@ -30,7 +28,8 @@ tar -vxf $GZ_FILE
 
 # Remove source files after installation
 #cd ..
-if [ -d ${EXEC_DIR} ]; then
-  rm -rf ${EXEC_DIR}
+if [ -d ${OSM_DIR} ]; then
+  rm -rf ${OSM_DIR}
 fi
-mv osm-3s_v0.7.57 v0.7.57
+
+mv ${OSM_ROOT}/osm-3s_v${OSM_VERSION} ${OSM_ROOT}/v${OSM_VERSION}

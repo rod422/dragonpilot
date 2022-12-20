@@ -10,6 +10,7 @@ from selfdrive.car.interfaces import CarInterfaceBase
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
+GearShifter = car.CarState.GearShifter
 
 
 class CarInterface(CarInterfaceBase):
@@ -246,6 +247,8 @@ class CarInterface(CarInterfaceBase):
       tune.kiBP = [0., 5., 12., 20., 27.]
       tune.kiV = [.35, .23, .20, .17, .1]
       if candidate in TSS2_CAR:
+        ret.vEgoStopping = 0.25
+        ret.vEgoStarting = 0.25
         ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
     else:
       tune.kpBP = [0., 5., 35.]
@@ -270,18 +273,6 @@ class CarInterface(CarInterfaceBase):
 
     buttonEvents = []
 
-    # SET / CANCEL
-    if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = False
-      be.type = ButtonType.setCruise
-      buttonEvents.append(be)
-    elif self.CS.out.cruiseState.enabled and not ret.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = True
-      be.type = ButtonType.cancel
-      buttonEvents.append(be)
-
     # MADS BUTTON
     if self.CS.out.madsEnabled != self.CS.madsEnabled:
       be = car.CarState.ButtonEvent.new_message()
@@ -290,10 +281,6 @@ class CarInterface(CarInterfaceBase):
       buttonEvents.append(be)
 
     ret.buttonEvents = buttonEvents
-
-    extraGears = []
-    if not (self.CS.CP.openpilotLongitudinalControl or self.CS.CP.enableGasInterceptor):
-      extraGears = [car.CarState.GearShifter.sport, car.CarState.GearShifter.low, car.CarState.GearShifter.brake]
 
     # low speed re-write (dp)
     self.cruise_speed_override = True # change this to False if you want to disable cruise speed override
@@ -309,7 +296,8 @@ class CarInterface(CarInterfaceBase):
       self.low_cruise_speed = 0.
 
     # events
-    events = self.create_common_events(ret, extra_gears=extraGears, pcm_enable=False)
+    events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low, GearShifter.brake],
+                                       pcm_enable=False)
 
     if self.CP.openpilotLongitudinalControl:
       if ret.cruiseState.standstill and not ret.brakePressed and not self.CP.enableGasInterceptor:
@@ -338,11 +326,20 @@ class CarInterface(CarInterfaceBase):
       self.CS.disengageByBrake = False
       ret.disengageByBrake = False
 
+    if self.CP.pcmCruise:
+      # do disable on button down
+      if not ret.cruiseState.enabled and self.CS.out.cruiseState.enabled:
+        if not self.CS.madsEnabled:
+          events.add(EventName.buttonCancel)
+        elif not self.cruise_cancelled_btn:
+          self.cruise_cancelled_btn = True
+          events.add(EventName.manualLongitudinalRequired)
+      # do enable on both accel and decel buttons
+      if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
+        enable_pressed = True
+
     # handle button presses
     for b in ret.buttonEvents:
-      # do enable on both accel and decel buttons
-      if b.type == ButtonType.setCruise and not b.pressed:
-        enable_pressed = True
       # do disable on MADS button if ACC is disabled
       if b.type == ButtonType.altButton1 and b.pressed:
         if not self.CS.madsEnabled: # disabled MADS
@@ -353,17 +350,14 @@ class CarInterface(CarInterfaceBase):
         else: # enabled MADS
           if not ret.cruiseState.enabled:
             enable_pressed = True
-      # do disable on button down
-      if b.type == ButtonType.cancel and b.pressed:
-        if not self.CS.madsEnabled:
-          events.add(EventName.buttonCancel)
-        elif ret.cruiseState.enabled:
-          events.add(EventName.manualLongitudinalRequired)
     if (ret.cruiseState.enabled or self.CS.madsEnabled) and enable_pressed:
       if enable_from_brake:
         events.add(EventName.silentButtonEnable)
       else:
         events.add(EventName.buttonEnable)
+
+    if ret.cruiseState.enabled:
+      self.cruise_cancelled_btn = False
 
     ret.events = events.to_msg()
 

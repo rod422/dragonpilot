@@ -89,7 +89,6 @@ function launch {
   # start manager
   cd selfdrive/manager
   if [ ! -f "/data/params/d/OsmLocal" ]; then
-    sudo rm -rf /data/media/0/osm
     ./custom_dep.py && ./build.py && ./manager.py
   else
     ./custom_dep.py && ./build.py && ./local_osm_install.py && ./manager.py

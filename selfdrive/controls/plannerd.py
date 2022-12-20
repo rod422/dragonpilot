@@ -13,8 +13,7 @@ def plannerd_thread(sm=None, pm=None):
 
   cloudlog.info("plannerd is waiting for CarParams")
   params = Params()
-  CP = car.CarParams.from_bytes(params.get("CarParamsSnG", block=True) if params.get_bool("ToyotaForceSnG") else
-                                params.get("CarParams", block=True))
+  CP = car.CarParams.from_bytes(params.get("CarParams", block=True))
   cloudlog.info("plannerd got CarParams: %s", CP.carName)
 
   use_lanelines = False
@@ -26,7 +25,7 @@ def plannerd_thread(sm=None, pm=None):
   lateral_planner = LateralPlanner(CP, use_lanelines=use_lanelines, wide_camera=wide_camera)
 
   if sm is None:
-    sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'lateralPlan', 'liveMapData', 'navInstruction', 'longitudinalPlan'],
+    sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'lateralPlan', 'liveMapData', 'navInstruction', 'longitudinalPlan', 'e2eLongState'],
                              poll=['radarState', 'modelV2'], ignore_avg_freq=['radarState'])
 
   if pm is None:

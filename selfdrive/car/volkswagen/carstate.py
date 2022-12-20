@@ -17,6 +17,7 @@ class CarState(CarStateBase):
     self.CCP = CarControllerParams(CP)
     self.button_states = {button.event_type: False for button in self.CCP.BUTTONS}
     self.esp_hold_confirmation = False
+    self.upscale_lead_car_signal = False
     self.buttonStates = BUTTON_STATES.copy()
     self.buttonStatesPrev = BUTTON_STATES.copy()
 
@@ -26,18 +27,19 @@ class CarState(CarStateBase):
     self.acc_mads_combo = self.param_s.get_bool("AccMadsCombo")
     self.below_speed_pause = self.param_s.get_bool("BelowSpeedPause")
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
-    self.resumeAvailable = False
     self.accEnabled = False
     self.madsEnabled = False
     self.leftBlinkerOn = False
     self.rightBlinkerOn = False
     self.disengageByBrake = False
     self.belowLaneChangeSpeed = True
-    self.mads_enabled = None
-    self.prev_mads_enabled = None
+    self.mads_enabled = False
+    self.prev_mads_enabled = False
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
     self.prev_brake_pressed = False
+    self.resumeAllowed = False
 
   def create_button_events(self, pt_cp, buttons):
     button_events = []
@@ -60,7 +62,7 @@ class CarState(CarStateBase):
     ret = car.CarState.new_message()
 
     self.prev_mads_enabled = self.mads_enabled
-    self.prev_brake_pressed = ret.brakePressed
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.buttonStatesPrev = self.buttonStates.copy()
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
 
@@ -150,14 +152,12 @@ class CarState(CarStateBase):
       # ACC okay but disabled (1), or a radar visibility or other fault/disruption (6 or 7)
       ret.cruiseState.available = False
       ret.cruiseState.enabled = False
+    self.cruiseState_enabled = ret.cruiseState.enabled
     self.esp_hold_confirmation = bool(pt_cp.vl["ESP_21"]["ESP_Haltebestaetigung"])
     ret.cruiseState.standstill = self.CP.pcmCruise and self.esp_hold_confirmation
     ret.accFaulted = pt_cp.vl["TSK_06"]["TSK_Status"] in (6, 7)
 
     self.mads_enabled = ret.cruiseState.available
-
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
     # radar sends a set-speed of ~90.69 m/s / 203mph.
@@ -186,30 +186,28 @@ class CarState(CarStateBase):
 
     if ret.cruiseState.available:
       if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
-        for b in self.button_events:
-          if b.type in (ButtonType.setCruise, ButtonType.decelCruise) and not b.pressed:
-            self.accEnabled = True
-          elif b.type in (ButtonType.resumeCruise, ButtonType.accelCruise) and not b.pressed and self.resumeAvailable:
-            self.accEnabled = True
+        if any(b.type in (ButtonType.setCruise, ButtonType.decelCruise) and not b.pressed for b in self.button_events):
+          self.accEnabled = True
+        elif any(b.type in (ButtonType.resumeCruise, ButtonType.accelCruise) and not b.pressed for b in self.button_events) and self.resumeAllowed:
+          self.accEnabled = True
       if self.enable_mads:
         self.madsEnabled = True if self.mads_enabled else False
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
       self.accEnabled = False
-      self.resumeAvailable = False
+      self.resumeAllowed = False
 
     ret.endToEndLong = self.e2eLongStatus
 
-    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.enable_mads or not self.CP.pcmCruiseSpeed:
-      for b in self.button_events:
-        if b.type == ButtonType.cancel and b.pressed: # CANCEL
-          self.accEnabled = False
-          if not self.enable_mads:
-            self.madsEnabled = False
+    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.CP.pcmCruiseSpeed:
+      if any(b.type == ButtonType.accelCruise and b.pressed for b in self.button_events): # CANCEL
+        self.accEnabled = False
+        if not self.enable_mads:
+          self.madsEnabled = False
       if ret.brakePressed and (not self.prev_brake_pressed or not ret.standstill):
         self.accEnabled = False
         if not self.enable_mads:
@@ -222,15 +220,16 @@ class CarState(CarStateBase):
 
     if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
       ret.cruiseState.enabled = self.accEnabled
-      if ret.cruiseState.enabled:
-        self.resumeAvailable = True
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
+
+    if ret.cruiseState.enabled:
+      self.resumeAllowed = True
 
     # Verify EPS readiness to accept steering commands
     hca_status = self.CCP.hca_status_values.get(pt_cp.vl["LH_EPS_03"]["EPS_HCA_Status"])
@@ -247,13 +246,16 @@ class CarState(CarStateBase):
     # Additional safety checks performed in CarInterface.
     ret.espDisabled = pt_cp.vl["ESP_21"]["ESP_Tastung_passiv"] != 0
 
+    # Digital instrument clusters expect the ACC HUD lead car distance to be scaled differently
+    self.upscale_lead_car_signal = bool(pt_cp.vl["Kombi_03"]["KBI_Variante"])
+
     return ret
 
   def update_pq(self, pt_cp, cam_cp, ext_cp, trans_type):
     ret = car.CarState.new_message()
 
     self.prev_mads_enabled = self.mads_enabled
-    self.prev_brake_pressed = ret.brakePressed
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.buttonStatesPrev = self.buttonStates.copy()
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
 
@@ -331,16 +333,13 @@ class CarState(CarStateBase):
     # Update ACC radar status.
     self.acc_type = ext_cp.vl["ACC_System"]["ACS_Typ_ACC"]
     ret.cruiseState.available = bool(pt_cp.vl["Motor_5"]["GRA_Hauptschalter"])
-    ret.cruiseState.enabled = pt_cp.vl["Motor_2"]["GRA_Status"] in (1, 2)
+    ret.cruiseState.enabled = self.cruiseState_enabled = pt_cp.vl["Motor_2"]["GRA_Status"] in (1, 2)
     if self.CP.pcmCruise:
       ret.accFaulted = ext_cp.vl["ACC_GRA_Anziege"]["ACA_StaACC"] in (6, 7)
     else:
       ret.accFaulted = pt_cp.vl["Motor_2"]["GRA_Status"] == 3
 
     self.mads_enabled = ret.cruiseState.available
-
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
 
     # Update ACC setpoint. When the setpoint reads as 255, the driver has not
     # yet established an ACC setpoint, so treat it as zero.
@@ -371,22 +370,22 @@ class CarState(CarStateBase):
         for b in self.button_events:
           if b.type in (ButtonType.setCruise, ButtonType.decelCruise) and not b.pressed:
             self.accEnabled = True
-          elif b.type in (ButtonType.resumeCruise, ButtonType.accelCruise) and not b.pressed and self.resumeAvailable:
+          elif b.type in (ButtonType.resumeCruise, ButtonType.accelCruise) and not b.pressed and self.resumeAllowed:
             self.accEnabled = True
       if self.enable_mads:
         self.madsEnabled = True if self.mads_enabled else False
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
       self.accEnabled = False
-      self.resumeAvailable = False
+      self.resumeAllowed = False
 
     ret.endToEndLong = self.e2eLongStatus
 
-    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.enable_mads or not self.CP.pcmCruiseSpeed:
+    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.CP.pcmCruiseSpeed:
       for b in self.button_events:
         if b.type == ButtonType.cancel and b.pressed: # CANCEL
           self.accEnabled = False
@@ -404,15 +403,16 @@ class CarState(CarStateBase):
 
     if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
       ret.cruiseState.enabled = self.accEnabled
-      if ret.cruiseState.enabled:
-        self.resumeAvailable = True
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
+
+    if ret.cruiseState.enabled:
+      self.resumeAllowed = True
 
     # Verify EPS readiness to accept steering commands
     hca_status = self.CCP.hca_status_values.get(pt_cp.vl["Lenkhilfe_2"]["LH2_Sta_HCA"])
@@ -467,6 +467,7 @@ class CarState(CarStateBase):
       ("ESP_Tastung_passiv", "ESP_21"),          # Stability control disabled
       ("ESP_Haltebestaetigung", "ESP_21"),       # ESP hold confirmation
       ("KBI_Handbremse", "Kombi_01"),            # Manual handbrake applied
+      ("KBI_Variante", "Kombi_03"),              # Digital/full-screen instrument cluster installed
       ("TSK_Status", "TSK_06"),                  # ACC engagement status from drivetrain coordinator
       ("GRA_Hauptschalter", "GRA_ACC_01"),       # ACC button, on/off
       ("GRA_Abbrechen", "GRA_ACC_01"),           # ACC button, cancel
@@ -498,6 +499,7 @@ class CarState(CarStateBase):
       ("Airbag_02", 5),     # From J234 Airbag control module
       ("Kombi_01", 2),      # From J285 Instrument cluster
       ("Blinkmodi_02", 1),  # From J519 BCM (sent at 1Hz when no lights active, 50Hz when active)
+      ("Kombi_03", 0),      # From J285 instrument cluster (not present on older cars, 1Hz when present)
     ]
 
     if CP.transmissionType == TransmissionType.automatic:

@@ -21,7 +21,7 @@ from selfdrive.controls.lib.latcontrol import LatControl
 from selfdrive.controls.lib.longcontrol import LongControl
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.latcontrol_indi import LatControlINDI
-from selfdrive.controls.lib.latcontrol_angle import LatControlAngle
+from selfdrive.controls.lib.latcontrol_angle import LatControlAngle, STEER_ANGLE_SATURATION_THRESHOLD
 from selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from selfdrive.controls.lib.events import Events, ET
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
@@ -114,7 +114,6 @@ class Controls:
     if self.enable_mads and self.disengage_on_accelerator:
       self.params.put_bool("DisengageOnAccelerator", False)
       self.disengage_on_accelerator = False
-    self.toyota_force_sng = self.params.get_bool("ToyotaForceSnG")
     self.CP.alternativeExperience = 0
     if not self.disengage_on_accelerator:
       self.CP.alternativeExperience |= ALTERNATIVE_EXPERIENCE.DISABLE_DISENGAGE_ON_GAS
@@ -154,8 +153,6 @@ class Controls:
     self.params.put("CarParams", cp_bytes)
     put_nonblocking("CarParamsCache", cp_bytes)
     put_nonblocking("CarParamsPersistent", cp_bytes)
-    self.params.put("CarParamsSnG", cp_bytes)
-    put_nonblocking("CarParamsCacheSnG", cp_bytes)
 
     # cleanup old params
     if not self.CP.experimentalLongitudinalAvailable:
@@ -261,19 +258,19 @@ class Controls:
 
     # Block resume if cruise never previously enabled
     resume_pressed = any(be.type in (ButtonType.accelCruise, ButtonType.resumeCruise) for be in CS.buttonEvents)
-    if (not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed) and not self.v_cruise_helper.v_cruise_initialized and resume_pressed:
+    if not self.CP.pcmCruise and not self.v_cruise_helper.v_cruise_initialized and resume_pressed:
       self.events.add(EventName.resumeBlocked)
 
     # Disable on rising edge of accelerator or brake. Also disable on brake when speed > 0
     if (CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
-      (((CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)) or
-      (CS.regenBraking and (not self.CS_prev.regenBraking or not CS.standstill))) and not self.mads_ndlob):
+      ((CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)) or
+      (CS.regenBraking and (not self.CS_prev.regenBraking or not CS.standstill))):
       if CS.cruiseState.enabled:
         self.events.add(EventName.pedalPressed)
-      else:
+      elif not self.mads_ndlob:
         self.events.add(EventName.silentPedalPressed)
 
-    if CS.brakePressed and CS.standstill:
+    if CS.brakePressed and CS.standstill and CS.cruiseState.enabled:
       self.events.add(EventName.preEnableStandstill)
 
     if CS.gasPressed and CS.cruiseState.enabled:
@@ -319,7 +316,7 @@ class Controls:
         self.events.add(EventName.calibrationInvalid)
 
     # Handle lane change
-    lane_change_set_timer = int(Params().get("AutoLaneChangeTimer", encoding="utf8"))
+    lane_change_set_timer = int(self.params.get("AutoLaneChangeTimer", encoding="utf8"))
     if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
       direction = self.sm['lateralPlan'].laneChangeDirection
       lc_prev = self.sm['lateralPlan'].laneChangePrev
@@ -346,8 +343,10 @@ class Controls:
       else:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
-      if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200 or self.mismatch_counter_long >= 200:
+      if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200:
         self.events.add(EventName.controlsMismatch)
+        if self.mismatch_counter_long >= 200:
+          self.events.add(EventName.controlsMismatchLong)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
         self.events.add(EventName.relayMalfunction)
@@ -613,11 +612,17 @@ class Controls:
     CC.latActive = (self.active or self.mads_ndlob) and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CS.madsEnabled and (not CS.brakePressed or self.mads_ndlob) and \
                    (not CS.belowLaneChangeSpeed or (not (((self.sm.frame - self.last_blinker_frame) * DT_CTRL) < 1.0) and
-                   not (CS.leftBlinker or CS.rightBlinker))) and not self.events.any(ET.NO_ENTRY)
-    CC.longActive = self.enabled and CS.cruiseState.enabled and not (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)) and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and not self.events.any(ET.NO_ENTRY)
+                   not (CS.leftBlinker or CS.rightBlinker)))
+    CC.longActive = self.enabled and (CS.cruiseState.enabled or (self.CP.pcmCruise and CS.accEnabled and self.CP.minEnableSpeed > 0 and not CS.cruiseState.enabled)) and \
+                    not (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)) and not self.events.any(ET.OVERRIDE_LONGITUDINAL)
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
+
+    # Enable blinkers while lane changing
+    if self.sm['lateralPlan'].laneChangeState != LaneChangeState.off:
+      CC.leftBlinker = self.sm['lateralPlan'].laneChangeDirection == LaneChangeDirection.left
+      CC.rightBlinker = self.sm['lateralPlan'].laneChangeDirection == LaneChangeDirection.right
 
     if CS.leftBlinker or CS.rightBlinker:
       self.last_blinker_frame = self.sm.frame
@@ -660,16 +665,14 @@ class Controls:
         lac_log.saturated = abs(actuators.steer) >= 0.9
 
     # Send a "steering required alert" if saturation count has reached the limit
-    if lac_log.active and not CS.steeringPressed and self.CP.lateralTuning.which() == 'torque' and not self.joystick_mode and \
-      CS.madsEnabled and not (CS.leftBlinker or CS.rightBlinker):
+    if lac_log.active and not CS.steeringPressed and self.CP.lateralTuning.which() == 'torque' and not self.joystick_mode and CS.madsEnabled:
       undershooting = abs(lac_log.desiredLateralAccel) / abs(1e-3 + lac_log.actualLateralAccel) > 1.2
       turning = abs(lac_log.desiredLateralAccel) > 1.0
       good_speed = CS.vEgo > 5
       max_torque = abs(self.last_actuators.steer) > 0.99
       if undershooting and turning and good_speed and max_torque:
         self.events.add(EventName.steerSaturated)
-    elif lac_log.active and not CS.steeringPressed and lac_log.saturated and \
-      CS.madsEnabled and not (CS.leftBlinker or CS.rightBlinker):
+    elif lac_log.active and lac_log.saturated and CS.madsEnabled:
       dpath_points = lat_plan.dPathPoints
       if len(dpath_points):
         # Check if we deviated from the path
@@ -720,7 +723,7 @@ class Controls:
 
     hudControl = CC.hudControl
     hudControl.setSpeed = float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
-    hudControl.speedVisible = self.enabled and CS.cruiseState.enabled
+    hudControl.speedVisible = self.enabled_long
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
     hudControl.leadVelocity = self.sm['radarState'].leadOne.vLeadK if self.sm['longitudinalPlan'].hasLead else 0.0
@@ -762,12 +765,16 @@ class Controls:
     if current_alert:
       hudControl.visualAlert = current_alert.visual_alert
 
-    if not self.read_only and (self.toyota_force_sng or self.initialized):
+    if not self.read_only and self.initialized:
       # send car controls over can
       self.last_actuators, can_sends = self.CI.apply(CC)
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
       CC.actuatorsOutput = self.last_actuators
-      self.steer_limited = abs(CC.actuators.steer - CC.actuatorsOutput.steer) > 1e-2
+      if self.CP.steerControlType == car.CarParams.SteerControlType.angle:
+        self.steer_limited = abs(CC.actuators.steeringAngleDeg - CC.actuatorsOutput.steeringAngleDeg) > \
+                             STEER_ANGLE_SATURATION_THRESHOLD
+      else:
+        self.steer_limited = abs(CC.actuators.steer - CC.actuatorsOutput.steer) > 1e-2
 
     force_decel = (self.sm['driverMonitoringState'].awarenessStatus < 0.) or \
                   (self.state == State.softDisabling)
@@ -873,7 +880,7 @@ class Controls:
     self.update_events(CS)
     cloudlog.timestamp("Events updated")
 
-    if not self.read_only and (self.toyota_force_sng or self.initialized):
+    if not self.read_only and self.initialized:
       # Update control state
       self.state_transition(CS)
       self.prof.checkpoint("State transition")

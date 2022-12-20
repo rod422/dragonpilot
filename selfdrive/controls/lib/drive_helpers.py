@@ -70,7 +70,7 @@ class VCruiseHelper:
   def v_cruise_initialized(self):
     return self.v_cruise_kph != V_CRUISE_INITIAL
 
-  def update_v_cruise(self, CS, enabled_long, is_metric, sm):
+  def update_v_cruise(self, CS, enabled, is_metric, sm):
     self.v_cruise_kph_last = self.v_cruise_kph
 
     self.reverse_acc_change = self.param_s.get_bool("ReverseAccChange")
@@ -78,36 +78,35 @@ class VCruiseHelper:
 
     if CS.cruiseState.available:
       if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
-        if CS.cruiseState.enabled:
-          # if stock cruise is completely disabled, then we can use our own set speed logic
-          if self.CP.carName == "honda":
-            for b in CS.buttonEvents:
-              if b.pressed:
-                if b.type == ButtonType.accelCruise:
-                  self.accel_pressed = True
-                  self.accel_pressed_last = cur_time
-                elif b.type == ButtonType.decelCruise:
-                  self.decel_pressed = True
-                  self.decel_pressed_last = cur_time
-              else:
-                if b.type == ButtonType.accelCruise:
-                  self.accel_pressed = False
-                elif b.type == ButtonType.decelCruise:
-                  self.decel_pressed = False
-            self._update_v_cruise_non_pcm_honda(CS, enabled_long, is_metric, cur_time)
-            self.v_cruise_kph = self.v_cruise_kph if is_metric else int(round((float(round(self.v_cruise_kph)) - 0.0995) / 0.6233))
-            self.v_cruise_cluster_kph = self.v_cruise_kph
-            if self.accel_pressed or self.decel_pressed:
-              if self.v_cruise_kph_last != self.v_cruise_kph:
+        # if stock cruise is completely disabled, then we can use our own set speed logic
+        if self.CP.carName == "honda":
+          for b in CS.buttonEvents:
+            if b.pressed:
+              if b.type == ButtonType.accelCruise:
+                self.accel_pressed = True
                 self.accel_pressed_last = cur_time
+              elif b.type == ButtonType.decelCruise:
+                self.decel_pressed = True
                 self.decel_pressed_last = cur_time
-                self.fastMode = True
             else:
-              self.fastMode = False
+              if b.type == ButtonType.accelCruise:
+                self.accel_pressed = False
+              elif b.type == ButtonType.decelCruise:
+                self.decel_pressed = False
+          self._update_v_cruise_non_pcm_honda(CS, enabled, is_metric, cur_time)
+          self.v_cruise_kph = self.v_cruise_kph if is_metric else int(round((float(round(self.v_cruise_kph)) - 0.0995) / 0.6233))
+          self.v_cruise_cluster_kph = self.v_cruise_kph
+          if self.accel_pressed or self.decel_pressed:
+            if self.v_cruise_kph_last != self.v_cruise_kph:
+              self.accel_pressed_last = cur_time
+              self.decel_pressed_last = cur_time
+              self.fastMode = True
           else:
-            self._update_v_cruise_non_pcm(CS, enabled_long, is_metric)
-            self.v_cruise_cluster_kph = self.v_cruise_kph
-            self.update_button_timers(CS, enabled_long)
+            self.fastMode = False
+        else:
+          self._update_v_cruise_non_pcm(CS, enabled, is_metric)
+          self.v_cruise_cluster_kph = self.v_cruise_kph
+          self.update_button_timers(CS, enabled)
       else:
         self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
         self.v_cruise_cluster_kph = CS.cruiseState.speedCluster * CV.MS_TO_KPH
@@ -115,10 +114,10 @@ class VCruiseHelper:
       self.v_cruise_kph = V_CRUISE_INITIAL
       self.v_cruise_cluster_kph = V_CRUISE_INITIAL
 
-  def _update_v_cruise_non_pcm(self, CS, enabled_long, is_metric):
+  def _update_v_cruise_non_pcm(self, CS, enabled, is_metric):
     # handle button presses. TODO: this should be in state_control, but a decelCruise press
     # would have the effect of both enabling and changing speed is checked after the state transition
-    if not enabled_long:
+    if not enabled:
       return
 
     long_press = False
@@ -171,11 +170,11 @@ class VCruiseHelper:
 
     self.v_cruise_kph = clip(round(self.v_cruise_kph, 1), V_CRUISE_MIN, V_CRUISE_MAX)
 
-  def _update_v_cruise_non_pcm_honda(self, CS, enabled_long, is_metric, cur_time):
+  def _update_v_cruise_non_pcm_honda(self, CS, enabled, is_metric, cur_time):
 
     self.v_cruise_kph = self.v_cruise_kph if is_metric else int(round((float(self.v_cruise_kph) * 0.6233 + 0.0995)))
 
-    if enabled_long:
+    if enabled:
       if self.accel_pressed:
         if (cur_time - self.accel_pressed_last) >= 1 or (self.fastMode and (cur_time - self.accel_pressed_last) >= 0.5):
           if self.reverse_acc_change:
@@ -210,7 +209,7 @@ class VCruiseHelper:
 
       self.v_cruise_kph = clip(self.v_cruise_kph, V_CRUISE_MIN_HONDA, V_CRUISE_MAX)
 
-  def update_button_timers(self, CS, enabled_long):
+  def update_button_timers(self, CS, enabled):
     # increment timer for buttons still pressed
     for k in self.button_timers:
       if self.button_timers[k] > 0:
@@ -220,7 +219,7 @@ class VCruiseHelper:
       if b.type.raw in self.button_timers:
         # Start/end timer and store current state on change of button pressed
         self.button_timers[b.type.raw] = 1 if b.pressed else 0
-        self.button_change_states[b.type.raw] = {"standstill": CS.cruiseState.standstill, "enabled": enabled_long}
+        self.button_change_states[b.type.raw] = {"standstill": CS.cruiseState.standstill, "enabled": enabled}
 
   def initialize_v_cruise(self, CS, is_metric):
     # initializing is handled by the PCM

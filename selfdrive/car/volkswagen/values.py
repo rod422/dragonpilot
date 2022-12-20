@@ -18,7 +18,7 @@ Button = namedtuple('Button', ['event_type', 'can_addr', 'can_msg', 'values'])
 
 
 class CarControllerParams:
-  HCA_STEP = 2                            # HCA_01/HCA_1 message frequency 50Hz
+  STEER_STEP = 2                          # HCA_01/HCA_1 message frequency 50Hz
   ACC_CONTROL_STEP = 2                    # ACC_06/ACC_07/ACC_System frequency 50Hz
 
   ACCEL_MAX = 2.0                         # 2.0 m/s max acceleration
@@ -330,11 +330,13 @@ FW_VERSIONS = {
       b'\xf1\x8703H906026J \xf1\x899971',
       b'\xf1\x8703H906026S \xf1\x896693',
       b'\xf1\x8703H906026S \xf1\x899970',
+      b'\xf1\x873CN906259  \xf1\x890005',
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xf1\x8709G927158A \xf1\x893387',
       b'\xf1\x8709G927158DR\xf1\x893536',
       b'\xf1\x8709G927158DR\xf1\x893742',
+      b'\xf1\x8709G927158F \xf1\x893489',
       b'\xf1\x8709G927158FT\xf1\x893835',
       b'\xf1\x8709G927158GL\xf1\x893939',
     ],
@@ -348,6 +350,7 @@ FW_VERSIONS = {
     (Ecu.eps, 0x712, None): [
       b'\xf1\x873QF909144B \xf1\x891582\xf1\x82\00571B60924A1',
       b'\xf1\x873QF909144B \xf1\x891582\xf1\x82\x0571B6G920A1',
+      b'\xf1\x875Q0909143P \xf1\x892051\xf1\x820528B6080105',
       b'\xf1\x875Q0909143P \xf1\x892051\xf1\x820528B6090105',
     ],
     (Ecu.fwdRadar, 0x757, None): [
@@ -814,6 +817,7 @@ FW_VERSIONS = {
       b'\xf1\x875G0906259L \xf1\x890002',
       b'\xf1\x875G0906259Q \xf1\x890002',
       b'\xf1\x878V0906259F \xf1\x890002',
+      b'\xf1\x878V0906259H \xf1\x890002',
       b'\xf1\x878V0906259J \xf1\x890002',
       b'\xf1\x878V0906259K \xf1\x890001',
       b'\xf1\x878V0906264B \xf1\x890003',
@@ -824,6 +828,7 @@ FW_VERSIONS = {
       b'\xf1\x870CW300044T \xf1\x895245',
       b'\xf1\x870CW300048  \xf1\x895201',
       b'\xf1\x870D9300012  \xf1\x894912',
+      b'\xf1\x870D9300012  \xf1\x894931',
       b'\xf1\x870D9300012K \xf1\x894513',
       b'\xf1\x870D9300013B \xf1\x894931',
       b'\xf1\x870D9300041N \xf1\x894512',
@@ -846,12 +851,14 @@ FW_VERSIONS = {
       b'\xf1\x875Q0959655J \xf1\x890825\xf1\x82\x13111112111111--241115141112221291163221',
       b'\xf1\x875Q0959655J \xf1\x890825\xf1\x82\023111112111111--171115141112221291163221',
       b'\xf1\x875Q0959655J \xf1\x890830\xf1\x82\023121111111211--261117141112231291163221',
+      b'\xf1\x875Q0959655J \xf1\x890830\xf1\x82\x13111112111111--241115141112221291163221',
       b'\xf1\x875Q0959655J \xf1\x890830\xf1\x82\x13121111111111--341117141212231291163221',
       b'\xf1\x875Q0959655N \xf1\x890361\xf1\x82\0211212001112110004110411111421149114',
       b'\xf1\x875Q0959655N \xf1\x890361\xf1\x82\0211212001112111104110411111521159114',
     ],
     (Ecu.eps, 0x712, None): [
       b'\xf1\x873Q0909144H \xf1\x895061\xf1\x82\00566G0HA14A1',
+      b'\xf1\x873Q0909144J \xf1\x895063\xf1\x82\x0566G0HA14A1',
       b'\xf1\x873Q0909144K \xf1\x895072\xf1\x82\x0571G01A16A1',
       b'\xf1\x873Q0909144K \xf1\x895072\xf1\x82\x0571G0HA16A1',
       b'\xf1\x873Q0909144L \xf1\x895081\xf1\x82\x0571G0JA14A1',

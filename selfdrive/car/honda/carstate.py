@@ -163,7 +163,6 @@ class CarState(CarStateBase):
     self.mads_disengage_lateral_on_brake = self.param_s.get_bool("DisengageLateralOnBrake")
     self.acc_mads_combo = self.param_s.get_bool("AccMadsCombo")
     self.below_speed_pause = self.param_s.get_bool("BelowSpeedPause")
-    self.resumeAvailable = False
     self.accEnabled = False
     self.madsEnabled = False
     self.leftBlinkerOn = False
@@ -172,14 +171,16 @@ class CarState(CarStateBase):
     self.belowLaneChangeSpeed = True
     self.mads_enabled = False
     self.prev_mads_enabled = False
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
     self.prev_brake_pressed = False
     self.gap_adjust_cruise_tr = 0
     self.gap_adjust_cruise_counter = 0.
     self.e2e_long_hold_counter = 0.
     self.e2e_long_hold_gap = False
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
+    self.resumeAllowed = False
 
   def update(self, cp, cp_cam, cp_body):
     ret = car.CarState.new_message()
@@ -192,7 +193,7 @@ class CarState(CarStateBase):
     self.prev_cruise_buttons = self.cruise_buttons
     self.prev_cruise_setting = self.cruise_setting
     self.prev_mads_enabled = self.mads_enabled
-    self.prev_brake_pressed = ret.brakePressed
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.gap_adjust_cruise = self.param_s.get_bool("GapAdjustCruise")
     self.gap_adjust_cruise_mode = int(self.param_s.get("GapAdjustCruiseMode"))
     self.gap_adjust_cruise_tr = int(self.param_s.get("GapAdjustCruiseTr"))
@@ -301,7 +302,7 @@ class CarState(CarStateBase):
       ret.brakePressed = (cp.vl["POWERTRAIN_DATA"]["BRAKE_PRESSED"] != 0) or self.brake_switch_active
 
     ret.brake = cp.vl["VSA_STATUS"]["USER_BRAKE"]
-    ret.cruiseState.enabled = cp.vl["POWERTRAIN_DATA"]["ACC_STATUS"] != 0
+    ret.cruiseState.enabled = self.cruiseState_enabled = cp.vl["POWERTRAIN_DATA"]["ACC_STATUS"] != 0
     ret.cruiseState.available = bool(cp.vl[self.main_on_sig_msg]["MAIN_ON"])
 
     self.mads_enabled = ret.cruiseState.available
@@ -327,7 +328,7 @@ class CarState(CarStateBase):
         if self.prev_cruise_buttons == 3:  # SET-
           if self.cruise_buttons != 3:
             self.accEnabled = True
-        elif self.prev_cruise_buttons == 4 and self.resumeAvailable:  # RESUME+
+        elif self.prev_cruise_buttons == 4 and self.resumeAllowed:  # RESUME+
           if self.cruise_buttons != 4:
             self.accEnabled = True
       if self.CP.openpilotLongitudinalControl:
@@ -361,21 +362,21 @@ class CarState(CarStateBase):
         if self.prev_cruise_setting != 1 and self.cruise_setting == 1:
           self.madsEnabled = not self.madsEnabled
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
       self.accEnabled = False
-      self.resumeAvailable = False
       self.e2e_long_hold_counter = 0
       self.e2e_long_hold_gap = False
       self.gap_adjust_cruise_counter = 0
+      self.resumeAllowed = False
 
     ret.gapAdjustCruiseTr = self.gap_adjust_cruise_tr
     ret.endToEndLong = self.e2eLongStatus
 
-    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.enable_mads or not self.CP.pcmCruiseSpeed:
+    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.CP.pcmCruiseSpeed:
       if self.prev_cruise_buttons != 2:  # CANCEL
         if self.cruise_buttons == 2:
           self.accEnabled = False
@@ -393,15 +394,16 @@ class CarState(CarStateBase):
 
     if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
       ret.cruiseState.enabled = self.accEnabled
-      if ret.cruiseState.enabled:
-        self.resumeAvailable = True
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
+
+    if ret.cruiseState.enabled:
+      self.resumeAllowed = True
 
     ret.steerFaultPermanent = False
     ret.steerFaultTemporary = False

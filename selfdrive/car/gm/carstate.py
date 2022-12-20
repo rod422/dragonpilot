@@ -29,7 +29,6 @@ class CarState(CarStateBase):
     self.acc_mads_combo = self.param_s.get_bool("AccMadsCombo")
     self.below_speed_pause = self.param_s.get_bool("BelowSpeedPause")
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
-    self.resumeAvailable = False
     self.accEnabled = False
     self.madsEnabled = False
     self.leftBlinkerOn = False
@@ -37,23 +36,35 @@ class CarState(CarStateBase):
     self.disengageByBrake = False
     self.belowLaneChangeSpeed = True
     self.mainEnabled = False
-    self.mads_enabled = None
-    self.prev_mads_enabled = None
+    self.mads_enabled = False
+    self.prev_mads_enabled = False
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
     self.prev_brake_pressed = False
+    self.gap_adjust_cruise_tr = 3
+    self.gap_adjust_cruise_counter = 0.
+    self.gap_adjust_cruise_button = False
+    self.prev_gap_adjust_cruise_button = False
+    self.e2e_long_hold_counter = 0.
+    self.e2e_long_hold_gap = False
+    self.resumeAllowed = False
 
   def update(self, pt_cp, cam_cp, loopback_cp):
     ret = car.CarState.new_message()
 
     self.prev_cruise_buttons = self.cruise_buttons
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.cruise_buttons = pt_cp.vl["ASCMSteeringButton"]["ACCButtons"]
     self.buttons_counter = pt_cp.vl["ASCMSteeringButton"]["RollingCounter"]
     self.pscm_status = copy.copy(pt_cp.vl["PSCMStatus"])
     self.moving_backward = pt_cp.vl["EBCMWheelSpdRear"]["MovingBackward"] != 0
     self.prev_mads_enabled = self.mads_enabled
-    self.prev_brake_pressed = ret.brakePressed
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
+    self.gap_adjust_cruise = self.param_s.get_bool("GapAdjustCruise")
+    self.gap_adjust_cruise_mode = int(self.param_s.get("GapAdjustCruiseMode"))
+    self.gap_adjust_cruise_tr = int(self.param_s.get("GapAdjustCruiseTr"))
+    self.prev_gap_adjust_cruise_button = self.gap_adjust_cruise_button
 
     # Variables used for avoiding LKAS faults
     self.loopback_lka_steering_cmd_updated = len(loopback_cp.vl_all["ASCMLKASteeringCmd"]["RollingCounter"]) > 0
@@ -124,7 +135,7 @@ class CarState(CarStateBase):
     ret.accFaulted = pt_cp.vl["AcceleratorPedal2"]["CruiseState"] == AccState.FAULTED
     ret.brakeLights = bool(ret.brakePressed or ret.parkingBrake)
 
-    ret.cruiseState.enabled = pt_cp.vl["AcceleratorPedal2"]["CruiseState"] != AccState.OFF
+    ret.cruiseState.enabled = self.cruiseState_enabled = pt_cp.vl["AcceleratorPedal2"]["CruiseState"] != AccState.OFF
     ret.cruiseState.standstill = pt_cp.vl["AcceleratorPedal2"]["CruiseState"] == AccState.STANDSTILL
     if self.CP.networkLocation == NetworkLocation.fwdCamera:
       ret.cruiseState.speed = cam_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
@@ -135,32 +146,58 @@ class CarState(CarStateBase):
 
     self.mads_enabled = ret.cruiseState.available
 
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
-
     if ret.cruiseState.available:
       if not self.CP.pcmCruise:
         if self.prev_cruise_buttons == 3: # SET-
           if self.cruise_buttons != 3:
             self.accEnabled = True
-        elif self.prev_cruise_buttons == 2 and self.resumeAvailable: # RESUME+
+        elif self.prev_cruise_buttons == 2 and self.resumeAllowed: # RESUME+
           if self.cruise_buttons != 2:
             self.accEnabled = True
+      if self.CP.openpilotLongitudinalControl:
+        self.gap_adjust_cruise_button = pt_cp.vl["ASCMSteeringButton"]["DistanceButton"]
+        if self.gap_adjust_cruise:
+          if self.gap_adjust_cruise_mode in (0, 2):
+            if self.gap_adjust_cruise_button:
+              self.gap_adjust_cruise_counter += 1
+            elif self.prev_gap_adjust_cruise_button and self.gap_adjust_cruise_button != 1 and self.gap_adjust_cruise_counter < 50:
+              self.gap_adjust_cruise_counter = 0
+              self.gap_adjust_cruise_tr -= 1
+              if self.gap_adjust_cruise_tr < 1:
+                self.gap_adjust_cruise_tr = 3
+              self.param_s.put("GapAdjustCruiseTr", str(self.gap_adjust_cruise_tr))
+            else:
+              self.gap_adjust_cruise_counter = 0
+        else:
+          self.gap_adjust_cruise_tr = 3
+        if self.gap_adjust_cruise_button:
+          self.e2e_long_hold_counter += 1
+          if self.e2e_long_hold_counter > 50 and not self.e2e_long_hold_gap:
+            self.e2e_long_hold_counter = 0
+            self.e2e_long_hold_gap = True
+            self.e2eLongStatus = not self.e2eLongStatus
+            self.param_s.put_bool("ExperimentalMode", self.e2eLongStatus)
+        else:
+          self.e2e_long_hold_counter = 0
+          self.e2e_long_hold_gap = False
       if self.enable_mads:
         if not self.prev_mads_enabled and self.mads_enabled:
           self.madsEnabled = True
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
       self.accEnabled = False
-      self.resumeAvailable = False
+      self.gap_adjust_cruise_counter = 0
+      self.e2e_long_hold_counter = 0
+      self.e2e_long_hold_gap = False
 
+    ret.gapAdjustCruiseTr = self.gap_adjust_cruise_tr
     ret.endToEndLong = self.e2eLongStatus
 
-    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.enable_mads:
+    if not self.CP.pcmCruise or (self.CP.pcmCruise and self.CP.minEnableSpeed > 0) or not self.CP.pcmCruiseSpeed:
       if self.prev_cruise_buttons != 6: # CANCEL
         if self.cruise_buttons == 6:
           self.accEnabled = False
@@ -171,22 +208,23 @@ class CarState(CarStateBase):
         if not self.enable_mads:
           self.madsEnabled = False
 
-    if self.CP.pcmCruise and self.CP.minEnableSpeed > 0:
+    if self.CP.pcmCruise and self.CP.minEnableSpeed > 0 and self.CP.pcmCruiseSpeed:
       if ret.gasPressed and not ret.cruiseState.enabled:
         self.accEnabled = False
       self.accEnabled = ret.cruiseState.enabled or self.accEnabled
 
     if not self.CP.pcmCruise:
       ret.cruiseState.enabled = self.accEnabled
-      if ret.cruiseState.enabled:
-        self.resumeAvailable = True
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
+
+    if ret.cruiseState.enabled:
+      self.resumeAllowed = True
 
     ret.steerFaultTemporary = False
     ret.steerFaultPermanent = False
@@ -234,6 +272,7 @@ class CarState(CarStateBase):
       ("CruiseState", "AcceleratorPedal2"),
       ("ACCButtons", "ASCMSteeringButton"),
       ("RollingCounter", "ASCMSteeringButton"),
+      ("DistanceButton", "ASCMSteeringButton"),
       ("SteeringWheelAngle", "PSCMSteeringAngle"),
       ("SteeringWheelRate", "PSCMSteeringAngle"),
       ("FLWheelSpd", "EBCMWheelSpdFront"),

@@ -27,22 +27,22 @@ class CarState(CarStateBase):
     self.rightBlinkerOn = False
     self.disengageByBrake = False
     self.belowLaneChangeSpeed = True
-    self.mads_enabled = None
-    self.prev_mads_enabled = None
+    self.mads_enabled = False
+    self.prev_mads_enabled = False
     self.lkas_enabled = None
     self.prev_lkas_enabled = None
-    self.cruise_buttons = 0
-    self.prev_cruise_buttons = 0
+    self.cruiseState_enabled = False
     self.prev_cruiseState_enabled = False
-    self.prev_acc_mads_combo = None
+    self.prev_acc_mads_combo = False
+    self.prev_brake_pressed = False
 
   def update(self, cp, cp_cam, cp_body):
     ret = car.CarState.new_message()
 
     # update prevs, update must run once per loop
-    self.prev_cruise_buttons = self.cruise_buttons
     self.prev_mads_enabled = self.mads_enabled
     self.prev_lkas_enabled = self.lkas_enabled
+    self.prev_cruiseState_enabled = self.cruiseState_enabled
     self.e2eLongStatus = self.param_s.get_bool("ExperimentalMode")
 
     ret.gas = cp.vl["Throttle"]["Throttle_Pedal"] / 255.
@@ -99,14 +99,11 @@ class CarState(CarStateBase):
     ret.steeringPressed = abs(ret.steeringTorque) > steer_threshold
 
     cp_cruise = cp_body if self.car_fingerprint in GLOBAL_GEN2 else cp
-    ret.cruiseState.enabled = cp_cruise.vl["CruiseControl"]["Cruise_Activated"] != 0
+    ret.cruiseState.enabled = self.cruiseState_enabled = cp_cruise.vl["CruiseControl"]["Cruise_Activated"] != 0
     ret.cruiseState.available = cp_cruise.vl["CruiseControl"]["Cruise_On"] != 0
     ret.cruiseState.speed = cp_cam.vl["ES_DashStatus"]["Cruise_Set_Speed"] * CV.KPH_TO_MS
 
     self.mads_enabled = ret.cruiseState.available
-
-    if self.prev_mads_enabled is None:
-      self.prev_mads_enabled = self.mads_enabled
 
     if (self.car_fingerprint in PREGLOBAL_CARS and cp.vl["Dash_State2"]["UNITS"] == 1) or \
        (self.car_fingerprint not in PREGLOBAL_CARS and cp.vl["Dashlights"]["UNITS"] == 1):
@@ -122,9 +119,9 @@ class CarState(CarStateBase):
           elif self.prev_lkas_enabled != self.lkas_enabled and self.prev_lkas_enabled == 2 and self.lkas_enabled != 1:
             self.madsEnabled = not self.madsEnabled
         if self.acc_mads_combo:
-          if not self.prev_acc_mads_combo and ret.cruiseState.enabled:
+          if not self.prev_acc_mads_combo and (ret.cruiseState.enabled or self.accEnabled):
             self.madsEnabled = True
-          self.prev_acc_mads_combo = ret.cruiseState.enabled
+          self.prev_acc_mads_combo = ret.cruiseState.enabled or self.accEnabled
     else:
       self.madsEnabled = False
 
@@ -134,16 +131,16 @@ class CarState(CarStateBase):
       if not ret.cruiseState.enabled:
         if not self.enable_mads:
           self.madsEnabled = False
-    if ret.brakePressed:
+    if ret.brakePressed and (not self.prev_brake_pressed or not ret.standstill):
       if not self.enable_mads:
         self.madsEnabled = False
 
     if not self.enable_mads:
       if ret.cruiseState.enabled and not self.prev_cruiseState_enabled:
         self.madsEnabled = True
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and self.prev_cruiseState_enabled:
         self.madsEnabled = False
-    self.prev_cruiseState_enabled = ret.cruiseState.enabled
+    self.prev_brake_pressed = ret.brakePressed
 
     ret.seatbeltUnlatched = cp.vl["Dashlights"]["SEATBELT_FL"] == 1
     ret.doorOpen = any([cp.vl["BodyInfo"]["DOOR_OPEN_RR"],

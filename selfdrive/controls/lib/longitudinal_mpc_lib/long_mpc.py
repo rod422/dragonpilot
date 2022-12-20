@@ -374,6 +374,13 @@ class LongitudinalMpc:
           self.desired_TF = 1.2
         elif carstate.gapAdjustCruiseTr == 1:
           self.desired_TF = 1.0
+      elif CP.carName == "gm":
+        if carstate.gapAdjustCruiseTr == 3:
+          self.desired_TF = 1.8
+        elif carstate.gapAdjustCruiseTr == 2:
+          self.desired_TF = T_FOLLOW
+        elif carstate.gapAdjustCruiseTr == 1:
+          self.desired_TF = 1.2
       else:
         self.desired_TF = T_FOLLOW
     else:

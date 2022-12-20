@@ -67,7 +67,7 @@ def create_fcw_command(packer, fcw):
   return packer.make_can_msg("ACC_HUD", 0, values)
 
 
-def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_depart, right_lane_depart, lat_active,
+def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_depart, right_lane_depart, lat_active, stock_lkas_hud,
                       mads_enabled, use_lta_msg, e2e_long_chime):
   faded_line = mads_enabled and not lat_active
   values = {
@@ -75,7 +75,7 @@ def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_dep
     "LDA_ALERT": steer if mads_enabled else 0,
     "RIGHT_LINE": 0 if not mads_enabled else 2 if faded_line else 3 if right_lane_depart else 1 if right_line else 2,
     "LEFT_LINE": 0 if not mads_enabled else 2 if faded_line else 3 if left_lane_depart else 1 if left_line else 2,
-    "BARRIERS" : 1 if lat_active else 0,
+    "BARRIERS": 1 if lat_active else 0,
     "LKAS_STATUS": 2 if mads_enabled else 1 if use_lta_msg and not mads_enabled else 0,
 
     # static signals
@@ -99,6 +99,11 @@ def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_dep
     "ADJUSTING_CAMERA": 0,
     "LDW_EXIST": 1,
   }
+
+  # lane sway functionality
+  # not all cars have LKAS_HUD ¡X update with camera values if available
+  values.update(stock_lkas_hud)
+
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
 def create_ui_command_disable_startup_lkas(packer, use_lta_msg):

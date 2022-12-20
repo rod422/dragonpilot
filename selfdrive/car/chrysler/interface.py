@@ -3,7 +3,7 @@ from cereal import car
 from common.params import Params
 from panda import Panda
 from selfdrive.car import STD_CARGO_KG, get_safety_config
-from selfdrive.car.chrysler.values import CAR, DBC, RAM_HD, RAM_DT
+from selfdrive.car.chrysler.values import CAR, DBC, RAM_HD, RAM_DT, RAM_CARS, ChryslerFlags
 from selfdrive.car.interfaces import CarInterfaceBase
 
 ButtonType = car.CarState.ButtonEvent.Type
@@ -15,7 +15,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def _get_params(ret, candidate, fingerprint, car_fw, experimental_long):
     ret.carName = "chrysler"
-    ret.dashcamOnly = candidate in RAM_HD
+    #ret.dashcamOnly = candidate in RAM_HD
 
     ret.radarOffCan = DBC[candidate]['radar'] is None
     ret.steerActuatorDelay = 0.1
@@ -30,9 +30,12 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_CHRYSLER_RAM_DT
 
     ret.minSteerSpeed = 3.8  # m/s
-    if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      # TODO: allow 2019 cars to steer down to 13 m/s if already engaged.
-      ret.minSteerSpeed = 17.5  # m/s 17 on the way up, 13 on the way down once engaged.
+    if candidate not in RAM_CARS:
+      # Newer FW versions standard on the following platforms, or flashed by a dealer onto older platforms have a higher minimum steering speed.
+      new_eps_platform = candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019)
+      new_eps_firmware = any(fw.ecu == 'eps' and fw.fwVersion[:4] >= b"6841" for fw in car_fw)
+      if new_eps_platform or new_eps_firmware:
+        ret.flags |= ChryslerFlags.HIGHER_MIN_STEERING_SPEED.value
 
     # Chrysler
     if candidate in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020):
@@ -61,11 +64,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2493. + STD_CARGO_KG
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
       ret.minSteerSpeed = 0.5
-      ret.minEnableSpeed = 14.6
-      if car_fw is not None:
-        for fw in car_fw:
-          if fw.ecu == 'eps' and fw.fwVersion in (b"68273275AF", b"68273275AG", b"68312176AE", b"68312176AG", ):
-            ret.minEnableSpeed = 0.
+      ret.minSteerSpeed = 14.5
+      for fw in car_fw:
+        if fw.ecu == 'eps' and fw.fwVersion.startswith((b"68312176", b"68273275")):
+          ret.minSteerSpeed = 0.
 
     elif candidate == CAR.RAM_HD:
       stiffnessFactor = 0.35
@@ -82,6 +84,10 @@ class CarInterface(CarInterfaceBase):
     if Params().get_bool("EnforceTorqueLateral"):
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
+    if ret.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED:
+      # TODO: allow these cars to steer down to 13 m/s if already engaged.
+      ret.minSteerSpeed = 17.5  # m/s 17 on the way up, 13 on the way down once engaged.
+
     ret.centerToFront = ret.wheelbase * 0.44
     ret.enableBsm = 720 in fingerprint[0]
 
@@ -97,18 +103,6 @@ class CarInterface(CarInterfaceBase):
     ret.belowLaneChangeSpeed = self.CS.belowLaneChangeSpeed
 
     buttonEvents = []
-
-    # SET / CANCEL
-    if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = False
-      be.type = ButtonType.setCruise
-      buttonEvents.append(be)
-    elif self.CS.out.cruiseState.enabled and not ret.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = True
-      be.type = ButtonType.cancel
-      buttonEvents.append(be)
 
     # MADS BUTTON
     if self.CS.out.madsEnabled != self.CS.madsEnabled:
@@ -150,10 +144,19 @@ class CarInterface(CarInterfaceBase):
       self.CS.disengageByBrake = False
       ret.disengageByBrake = False
 
-    for b in ret.buttonEvents:
+    if self.CP.pcmCruise:
+      # do disable on button down
+      if not ret.cruiseState.enabled and self.CS.out.cruiseState.enabled:
+        if not self.CS.madsEnabled:
+          events.add(EventName.buttonCancel)
+        elif not self.cruise_cancelled_btn:
+          self.cruise_cancelled_btn = True
+          events.add(EventName.manualLongitudinalRequired)
       # do enable on both accel and decel buttons
-      if b.type in (ButtonType.accelCruise, ButtonType.decelCruise, ButtonType.setCruise) and not b.pressed:
+      if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
         enable_pressed = True
+
+    for b in ret.buttonEvents:
       # do disable on MADS button if ACC is disabled
       if b.type == ButtonType.altButton1 and b.pressed:
         if not self.CS.madsEnabled: # disabled MADS
@@ -164,17 +167,14 @@ class CarInterface(CarInterfaceBase):
         else: # enabled MADS
           if not ret.cruiseState.enabled:
             enable_pressed = True
-      # do disable on button down
-      if b.type == ButtonType.cancel and b.pressed:
-        if not self.CS.madsEnabled:
-          events.add(EventName.buttonCancel)
-        elif ret.cruiseState.enabled:
-          events.add(EventName.manualLongitudinalRequired)
     if (ret.cruiseState.enabled or self.CS.madsEnabled) and enable_pressed:
       if enable_from_brake:
         events.add(EventName.silentButtonEnable)
       else:
         events.add(EventName.buttonEnable)
+
+    if ret.cruiseState.enabled:
+      self.cruise_cancelled_btn = False
 
     ret.events = events.to_msg()
 

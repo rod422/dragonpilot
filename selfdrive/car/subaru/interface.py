@@ -8,6 +8,7 @@ from selfdrive.car.subaru.values import CAR, GLOBAL_GEN2, PREGLOBAL_CARS
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
+GearShifter = car.CarState.GearShifter
 
 
 class CarInterface(CarInterfaceBase):
@@ -123,18 +124,6 @@ class CarInterface(CarInterfaceBase):
 
     buttonEvents = []
 
-    # SET / CANCEL
-    if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = False
-      be.type = ButtonType.setCruise
-      buttonEvents.append(be)
-    elif self.CS.out.cruiseState.enabled and not ret.cruiseState.enabled:
-      be = car.CarState.ButtonEvent.new_message()
-      be.pressed = True
-      be.type = ButtonType.cancel
-      buttonEvents.append(be)
-
     # MADS BUTTON
     if self.CS.out.madsEnabled != self.CS.madsEnabled:
       be = car.CarState.ButtonEvent.new_message()
@@ -144,11 +133,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.buttonEvents = buttonEvents
 
-    extraGears = []
-    if not (self.CS.CP.openpilotLongitudinalControl or self.CS.CP.enableGasInterceptor):
-      extraGears = [car.CarState.GearShifter.sport, car.CarState.GearShifter.low]
-
-    events = self.create_common_events(ret, extra_gears=extraGears, pcm_enable=False)
+    events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low], pcm_enable=False)
 
     self.CS.disengageByBrake = self.CS.disengageByBrake or ret.disengageByBrake
 
@@ -164,10 +149,19 @@ class CarInterface(CarInterfaceBase):
       self.CS.disengageByBrake = False
       ret.disengageByBrake = False
 
-    for b in ret.buttonEvents:
+    if self.CP.pcmCruise:
+      # do disable on button down
+      if not ret.cruiseState.enabled and self.CS.out.cruiseState.enabled:
+        if not self.CS.madsEnabled:
+          events.add(EventName.buttonCancel)
+        elif not self.cruise_cancelled_btn:
+          self.cruise_cancelled_btn = True
+          events.add(EventName.manualLongitudinalRequired)
       # do enable on both accel and decel buttons
-      if b.type in (ButtonType.accelCruise, ButtonType.decelCruise, ButtonType.setCruise) and not b.pressed:
+      if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
         enable_pressed = True
+
+    for b in ret.buttonEvents:
       # do disable on MADS button if ACC is disabled
       if b.type == ButtonType.altButton1 and b.pressed:
         if not self.CS.madsEnabled: # disabled MADS
@@ -178,17 +172,14 @@ class CarInterface(CarInterfaceBase):
         else: # enabled MADS
           if not ret.cruiseState.enabled:
             enable_pressed = True
-      # do disable on button down
-      if b.type == ButtonType.cancel and b.pressed:
-        if not self.CS.madsEnabled:
-          events.add(EventName.buttonCancel)
-        elif ret.cruiseState.enabled:
-          events.add(EventName.manualLongitudinalRequired)
     if (ret.cruiseState.enabled or self.CS.madsEnabled) and enable_pressed:
       if enable_from_brake:
         events.add(EventName.silentButtonEnable)
       else:
         events.add(EventName.buttonEnable)
+
+    if ret.cruiseState.enabled:
+      self.cruise_cancelled_btn = False
 
     ret.events = events.to_msg()
 

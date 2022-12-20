@@ -44,12 +44,10 @@ class CarController:
     self.param_s = Params()
     self.e2e_long_status = 0
     self.e2e_long_status_timer = 0
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
     self.has_set_lkas = False
 
   def update(self, CC, CS):
     self.e2e_long_status = self.sm['e2eLongState'].status
-    self.e2e_long_alert = self.param_s.get_bool("EndToEndLongAlert")
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -115,9 +113,7 @@ class CarController:
     if self.e2e_long_status != 2:
       self.e2e_long_status_timer = cur_time
 
-    e2e_long_chime = self.e2e_long_alert and self.e2e_long_status == 2 and not hud_control.leadVisible and \
-                     not CS.out.cruiseState.enabled and (CS.out.brakePressed or CS.out.brakeHoldActive) and \
-                     not CS.out.gasPressed and CS.out.standstill and (0.3 < (cur_time - self.e2e_long_status_timer) <= 0.4)
+    e2e_long_chime = (self.e2e_long_status == 2 and (0.3 < (cur_time - self.e2e_long_status_timer) <= 0.4)) or self.e2e_long_status == 3
 
     can_sends = []
 
@@ -198,7 +194,7 @@ class CarController:
           can_sends.append(create_ui_command_disable_startup_lkas(self.packer, use_lta_msg))
         can_sends.append(create_ui_command(self.packer, steer_alert, pcm_cancel_cmd, hud_control.leftLaneVisible,
                                            hud_control.rightLaneVisible, hud_control.leftLaneDepart,
-                                           hud_control.rightLaneDepart, CC.latActive, CS.madsEnabled, use_lta_msg, e2e_long_chime))
+                                           hud_control.rightLaneDepart, CC.latActive, CS.lkas_hud, CS.madsEnabled, use_lta_msg, e2e_long_chime))
 
       if (self.frame % 100 == 0 or send_ui) and self.CP.enableDsu:
         can_sends.append(create_fcw_command(self.packer, fcw_alert))
@@ -210,6 +206,7 @@ class CarController:
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+    new_actuators.steerOutputCan = apply_steer
     new_actuators.accel = self.accel
     new_actuators.gas = self.gas
 
