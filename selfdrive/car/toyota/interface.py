@@ -252,8 +252,8 @@ class CarInterface(CarInterfaceBase):
     ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGasInterceptor) else MIN_ACC_SPEED
 
     tune = ret.longitudinalTuning
-    tune.deadzoneBP = [0., 9.]
-    tune.deadzoneV = [.0, .15]
+    tune.deadzoneBP = [0., 9., 12.]
+    tune.deadzoneV = [.0, .15, 0.05]
     if candidate in TSS2_CAR or ret.enableGasInterceptor:
       tune.kpBP = [0., 5., 20.]
       tune.kpV = [1.3, 1.0, 0.7]
@@ -264,10 +264,12 @@ class CarInterface(CarInterfaceBase):
         ret.vEgoStarting = 0.25
         ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
     else:
-      tune.kpBP = [0., 5., 35.]
-      tune.kiBP = [0., 35.]
-      tune.kpV = [3.6, 2.4, 1.5]
-      tune.kiV = [0.54, 0.36]
+      tune.kpBP = [0., 35.]
+      tune.kiBP = [0.]
+      tune.kdBP = [0., 16., 20., 45.]
+      tune.kpV = [1.2, 1.4]
+      tune.kiV = [.36]
+      tune.kdV = [.25, .3, .4, .7]
 
     return ret
 
