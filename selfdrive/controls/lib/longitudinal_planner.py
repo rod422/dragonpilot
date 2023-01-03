@@ -135,7 +135,7 @@ class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     # dp
     self.dp_accel_profile_ctrl = False
-    self.dp_accel_profile = DP_ACCEL_ECO
+    self.dp_accel_profile = DP_ACCEL_NORMAL
     self.dp_following_profile_ctrl = False
     self.dp_following_profile = 0
     self.cruise_source = 'cruise'
