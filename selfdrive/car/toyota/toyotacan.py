@@ -99,7 +99,7 @@ def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_dep
   }
 
   # lane sway functionality
-  # not all cars have LKAS_HUD ¡X update with camera values if available
+  # not all cars have LKAS_HUD — update with camera values if available
   values.update(stock_lkas_hud)
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
