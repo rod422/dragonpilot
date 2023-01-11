@@ -50,7 +50,7 @@ SOURCES = { ...
             'acados_solver_long.c'
           };
 
-INC_PATH = '/data/openpilot/third_party/acados/include/acados/include';
+INC_PATH = '/data/dp-private/third_party/acados/include/acados/include';
 
 INCS = {['-I', fullfile(INC_PATH, 'blasfeo', 'include')], ...
         ['-I', fullfile(INC_PATH, 'hpipm', 'include')], ...
@@ -66,7 +66,7 @@ COMPDEFINES = 'COMPDEFINES=$COMPDEFINES';
 
 
 
-LIB_PATH = ['-L', fullfile('/data/openpilot/third_party/acados/include/acados/lib')];
+LIB_PATH = ['-L', fullfile('/data/dp-private/third_party/acados/include/acados/lib')];
 
 LIBS = {'-lacados', '-lhpipm', '-lblasfeo'};
 

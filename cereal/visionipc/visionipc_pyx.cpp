@@ -15,7 +15,7 @@
         "language": "c++",
         "name": "cereal.visionipc.visionipc_pyx",
         "sources": [
-            "/data/openpilot/cereal/visionipc/visionipc_pyx.pyx"
+            "/data/dp-private/cereal/visionipc/visionipc_pyx.pyx"
         ]
     },
     "module_name": "cereal.visionipc.visionipc_pyx"

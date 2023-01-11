@@ -1,7 +1,7 @@
 {
-    "acados_include_path": "/data/openpilot/third_party/acados/include/acados/include",
-    "acados_lib_path": "/data/openpilot/third_party/acados/include/acados/lib",
-    "code_export_directory": "/data/openpilot/selfdrive/dragonpilot/controls_0816/lib/lateral_mpc_lib/c_generated_code",
+    "acados_include_path": "/data/dp-private/third_party/acados/include/acados/include",
+    "acados_lib_path": "/data/dp-private/third_party/acados/include/acados/lib",
+    "code_export_directory": "/data/dp-private/selfdrive/dragonpilot/controls_0816/lib/lateral_mpc_lib/c_generated_code",
     "constraints": {
         "C": [],
         "C_e": [],

@@ -139,6 +139,8 @@ public:
 
   inline bool getDpE2EConditionalAdaptAp() const;
 
+  inline bool getDpE2EConditionalVoacc() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -297,6 +299,9 @@ public:
 
   inline bool getDpE2EConditionalAdaptAp();
   inline void setDpE2EConditionalAdaptAp(bool value);
+
+  inline bool getDpE2EConditionalVoacc();
+  inline void setDpE2EConditionalVoacc(bool value);
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -938,6 +943,20 @@ inline bool DragonConf::Builder::getDpE2EConditionalAdaptAp() {
 inline void DragonConf::Builder::setDpE2EConditionalAdaptAp(bool value) {
   _builder.setDataField<bool>(
       ::capnp::bounded<143>() * ::capnp::ELEMENTS, value);
+}
+
+inline bool DragonConf::Reader::getDpE2EConditionalVoacc() const {
+  return _reader.getDataField<bool>(
+      ::capnp::bounded<168>() * ::capnp::ELEMENTS);
+}
+
+inline bool DragonConf::Builder::getDpE2EConditionalVoacc() {
+  return _builder.getDataField<bool>(
+      ::capnp::bounded<168>() * ::capnp::ELEMENTS);
+}
+inline void DragonConf::Builder::setDpE2EConditionalVoacc(bool value) {
+  _builder.setDataField<bool>(
+      ::capnp::bounded<168>() * ::capnp::ELEMENTS, value);
 }
 
 }  // namespace

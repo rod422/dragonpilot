@@ -13,7 +13,7 @@
         "language": "c++",
         "name": "opendbc.can.parser_pyx",
         "sources": [
-            "/data/openpilot/opendbc/can/parser_pyx.pyx"
+            "/data/dp-private/opendbc/can/parser_pyx.pyx"
         ]
     },
     "module_name": "opendbc.can.parser_pyx"
