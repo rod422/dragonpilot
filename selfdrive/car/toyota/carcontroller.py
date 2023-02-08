@@ -47,7 +47,6 @@ class CarController:
 
     # dp
     self.dp_toyota_sng = False
-    self.dp_atl = 0
 
     self.dp_toyota_auto_lock = False
     self.dp_toyota_auto_unlock = False
@@ -58,7 +57,6 @@ class CarController:
     if dragonconf is not None:
       self.dp_toyota_sng = dragonconf.dpToyotaSng
       self.dp_e2e_conditional = dragonconf.dpE2EConditional
-      self.dp_atl = dragonconf.dpAtl
       self.dp_toyota_auto_lock = dragonconf.dpToyotaAutoLock
       self.dp_toyota_auto_unlock = dragonconf.dpToyotaAutoUnlock
     actuators = CC.actuators
@@ -203,7 +201,7 @@ class CarController:
       if self.frame % 100 == 0 or send_ui:
         can_sends.append(create_ui_command(self.packer, steer_alert, pcm_cancel_cmd, hud_control.leftLaneVisible,
                                            hud_control.rightLaneVisible, hud_control.leftLaneDepart,
-                                           hud_control.rightLaneDepart, CC.enabled, CS.lkas_hud))
+                                           hud_control.rightLaneDepart, CC.latActive, CS.lkas_hud))
 
       if (self.frame % 100 == 0 or send_ui) and self.CP.enableDsu:
         can_sends.append(create_fcw_command(self.packer, fcw_alert))
