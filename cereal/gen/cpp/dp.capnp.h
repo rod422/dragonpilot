@@ -81,8 +81,6 @@ public:
 
   inline bool getDpUiSide() const;
 
-  inline  ::int8_t getDpUiVolume() const;
-
   inline  ::uint8_t getDpUiBrightness() const;
 
   inline  ::uint8_t getDpUiDisplayMode() const;
@@ -100,6 +98,8 @@ public:
   inline bool getDpUiChevron() const;
 
   inline bool getDpUiDmCam() const;
+
+  inline bool getDpUiRainbow() const;
 
   inline bool getDpToyotaSng() const;
 
@@ -130,10 +130,6 @@ public:
   inline  ::uint8_t getDpFollowingProfile() const;
 
   inline bool getDpE2EConditional() const;
-
-  inline  ::uint8_t getDpE2EConditionalAtSpeed() const;
-
-  inline  ::uint8_t getDpE2EConditionalAtSpeedLead() const;
 
   inline bool getDpE2EConditionalAdaptFp() const;
 
@@ -213,9 +209,6 @@ public:
   inline bool getDpUiSide();
   inline void setDpUiSide(bool value);
 
-  inline  ::int8_t getDpUiVolume();
-  inline void setDpUiVolume( ::int8_t value);
-
   inline  ::uint8_t getDpUiBrightness();
   inline void setDpUiBrightness( ::uint8_t value);
 
@@ -242,6 +235,9 @@ public:
 
   inline bool getDpUiDmCam();
   inline void setDpUiDmCam(bool value);
+
+  inline bool getDpUiRainbow();
+  inline void setDpUiRainbow(bool value);
 
   inline bool getDpToyotaSng();
   inline void setDpToyotaSng(bool value);
@@ -287,12 +283,6 @@ public:
 
   inline bool getDpE2EConditional();
   inline void setDpE2EConditional(bool value);
-
-  inline  ::uint8_t getDpE2EConditionalAtSpeed();
-  inline void setDpE2EConditionalAtSpeed( ::uint8_t value);
-
-  inline  ::uint8_t getDpE2EConditionalAtSpeedLead();
-  inline void setDpE2EConditionalAtSpeedLead( ::uint8_t value);
 
   inline bool getDpE2EConditionalAdaptFp();
   inline void setDpE2EConditionalAdaptFp(bool value);
@@ -539,46 +529,32 @@ inline void DragonConf::Builder::setDpUiSide(bool value) {
       ::capnp::bounded<66>() * ::capnp::ELEMENTS, value);
 }
 
-inline  ::int8_t DragonConf::Reader::getDpUiVolume() const {
-  return _reader.getDataField< ::int8_t>(
-      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
-}
-
-inline  ::int8_t DragonConf::Builder::getDpUiVolume() {
-  return _builder.getDataField< ::int8_t>(
-      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
-}
-inline void DragonConf::Builder::setDpUiVolume( ::int8_t value) {
-  _builder.setDataField< ::int8_t>(
-      ::capnp::bounded<11>() * ::capnp::ELEMENTS, value);
-}
-
 inline  ::uint8_t DragonConf::Reader::getDpUiBrightness() const {
   return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<12>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
 }
 
 inline  ::uint8_t DragonConf::Builder::getDpUiBrightness() {
   return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<12>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpUiBrightness( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<12>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::uint8_t DragonConf::Reader::getDpUiDisplayMode() const {
   return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<13>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<12>() * ::capnp::ELEMENTS);
 }
 
 inline  ::uint8_t DragonConf::Builder::getDpUiDisplayMode() {
   return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<13>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<12>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpUiDisplayMode( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<13>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<12>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpUiSpeed() const {
@@ -653,310 +629,296 @@ inline void DragonConf::Builder::setDpUiLaneline(bool value) {
 
 inline bool DragonConf::Reader::getDpUiChevron() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<112>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<104>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpUiChevron() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<112>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<104>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpUiChevron(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<112>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<104>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpUiDmCam() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<113>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<105>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpUiDmCam() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<113>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<105>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpUiDmCam(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<113>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<105>() * ::capnp::ELEMENTS, value);
+}
+
+inline bool DragonConf::Reader::getDpUiRainbow() const {
+  return _reader.getDataField<bool>(
+      ::capnp::bounded<106>() * ::capnp::ELEMENTS);
+}
+
+inline bool DragonConf::Builder::getDpUiRainbow() {
+  return _builder.getDataField<bool>(
+      ::capnp::bounded<106>() * ::capnp::ELEMENTS);
+}
+inline void DragonConf::Builder::setDpUiRainbow(bool value) {
+  _builder.setDataField<bool>(
+      ::capnp::bounded<106>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpToyotaSng() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<114>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<107>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpToyotaSng() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<114>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<107>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpToyotaSng(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<114>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<107>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpAccelProfileCtrl() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<115>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<108>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpAccelProfileCtrl() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<115>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<108>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpAccelProfileCtrl(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<115>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<108>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::uint8_t DragonConf::Reader::getDpAccelProfile() const {
   return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS);
 }
 
 inline  ::uint8_t DragonConf::Builder::getDpAccelProfile() {
   return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpAccelProfile( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<15>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpToyotaCruiseOverride() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<116>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<109>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpToyotaCruiseOverride() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<116>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<109>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpToyotaCruiseOverride(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<116>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<109>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::uint8_t DragonConf::Reader::getDpToyotaCruiseOverrideSpeed() const {
   return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<16>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
 }
 
 inline  ::uint8_t DragonConf::Builder::getDpToyotaCruiseOverrideSpeed() {
   return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<16>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpToyotaCruiseOverrideSpeed( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<16>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpToyotaAutoLock() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<117>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<110>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpToyotaAutoLock() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<117>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<110>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpToyotaAutoLock(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<117>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<110>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpToyotaAutoUnlock() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<118>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<111>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpToyotaAutoUnlock() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<118>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<111>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpToyotaAutoUnlock(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<118>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<111>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpMapd() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<119>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<128>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpMapd() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<119>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<128>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpMapd(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<119>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<128>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpLocalDb() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<136>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<129>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpLocalDb() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<136>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<129>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpLocalDb(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<136>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<129>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpDashcamd() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<137>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<130>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpDashcamd() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<137>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<130>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpDashcamd(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<137>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<130>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpMazdaSteerAlert() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<138>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<131>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpMazdaSteerAlert() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<138>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<131>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpMazdaSteerAlert(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<138>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<131>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpSpeedCheck() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<139>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<132>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpSpeedCheck() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<139>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<132>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpSpeedCheck(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<139>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<132>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpFollowingProfileCtrl() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<140>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<133>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpFollowingProfileCtrl() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<140>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<133>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpFollowingProfileCtrl(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<140>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<133>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::uint8_t DragonConf::Reader::getDpFollowingProfile() const {
   return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<18>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<17>() * ::capnp::ELEMENTS);
 }
 
 inline  ::uint8_t DragonConf::Builder::getDpFollowingProfile() {
   return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<18>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<17>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpFollowingProfile( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<18>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<17>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpE2EConditional() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<141>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<134>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpE2EConditional() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<141>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<134>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpE2EConditional(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<141>() * ::capnp::ELEMENTS, value);
-}
-
-inline  ::uint8_t DragonConf::Reader::getDpE2EConditionalAtSpeed() const {
-  return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<19>() * ::capnp::ELEMENTS);
-}
-
-inline  ::uint8_t DragonConf::Builder::getDpE2EConditionalAtSpeed() {
-  return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<19>() * ::capnp::ELEMENTS);
-}
-inline void DragonConf::Builder::setDpE2EConditionalAtSpeed( ::uint8_t value) {
-  _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<19>() * ::capnp::ELEMENTS, value);
-}
-
-inline  ::uint8_t DragonConf::Reader::getDpE2EConditionalAtSpeedLead() const {
-  return _reader.getDataField< ::uint8_t>(
-      ::capnp::bounded<20>() * ::capnp::ELEMENTS);
-}
-
-inline  ::uint8_t DragonConf::Builder::getDpE2EConditionalAtSpeedLead() {
-  return _builder.getDataField< ::uint8_t>(
-      ::capnp::bounded<20>() * ::capnp::ELEMENTS);
-}
-inline void DragonConf::Builder::setDpE2EConditionalAtSpeedLead( ::uint8_t value) {
-  _builder.setDataField< ::uint8_t>(
-      ::capnp::bounded<20>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<134>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpE2EConditionalAdaptFp() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<142>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<135>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpE2EConditionalAdaptFp() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<142>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<135>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpE2EConditionalAdaptFp(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<142>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<135>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpE2EConditionalAdaptAp() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<143>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<144>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpE2EConditionalAdaptAp() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<143>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<144>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpE2EConditionalAdaptAp(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<143>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<144>() * ::capnp::ELEMENTS, value);
 }
 
 inline bool DragonConf::Reader::getDpE2EConditionalVoacc() const {
   return _reader.getDataField<bool>(
-      ::capnp::bounded<168>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<145>() * ::capnp::ELEMENTS);
 }
 
 inline bool DragonConf::Builder::getDpE2EConditionalVoacc() {
   return _builder.getDataField<bool>(
-      ::capnp::bounded<168>() * ::capnp::ELEMENTS);
+      ::capnp::bounded<145>() * ::capnp::ELEMENTS);
 }
 inline void DragonConf::Builder::setDpE2EConditionalVoacc(bool value) {
   _builder.setDataField<bool>(
-      ::capnp::bounded<168>() * ::capnp::ELEMENTS, value);
+      ::capnp::bounded<145>() * ::capnp::ELEMENTS, value);
 }
 
 }  // namespace

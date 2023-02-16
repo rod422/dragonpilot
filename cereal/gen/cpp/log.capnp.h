@@ -48,7 +48,7 @@ CAPNP_DECLARE_ENUM(FrameType, ddb169f01e102879);
 CAPNP_DECLARE_SCHEMA(d810b1e7705dd69c);
 enum class ImageSensor_d810b1e7705dd69c: uint16_t {
   UNKNOWN,
-  AR0321,
+  AR0231,
   OX03C10,
 };
 CAPNP_DECLARE_ENUM(ImageSensor, d810b1e7705dd69c);
@@ -383,6 +383,7 @@ enum class ConfigSource_b2d0985eb51c97b9: uint16_t {
   FLASH,
 };
 CAPNP_DECLARE_ENUM(ConfigSource, b2d0985eb51c97b9);
+CAPNP_DECLARE_SCHEMA(b9c5911198388e0c);
 CAPNP_DECLARE_SCHEMA(de94674b07ae51c1);
 CAPNP_DECLARE_SCHEMA(d71a12b6faada7ee);
 enum class MeasurementSource_d71a12b6faada7ee: uint16_t {
@@ -1411,7 +1412,7 @@ struct GnssMeasurements {
 
 
   struct _capnpPrivate {
-    CAPNP_DECLARE_STRUCT_HEADER(afd47016570e9d09, 3, 4)
+    CAPNP_DECLARE_STRUCT_HEADER(afd47016570e9d09, 3, 5)
     #if !CAPNP_LITE
     static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
     #endif  // !CAPNP_LITE
@@ -1460,12 +1461,14 @@ struct UbloxGnss {
     IONO_DATA,
     HW_STATUS,
     HW_STATUS2,
+    GLONASS_EPHEMERIS,
   };
   struct MeasurementReport;
   struct Ephemeris;
   struct IonoData;
   struct HwStatus;
   struct HwStatus2;
+  struct GlonassEphemeris;
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(85dddd7ce6cefa5d, 1, 1)
@@ -1598,6 +1601,21 @@ struct UbloxGnss::HwStatus2 {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(f919b410b90e53c6, 2, 0)
+    #if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
+    #endif  // !CAPNP_LITE
+  };
+};
+
+struct UbloxGnss::GlonassEphemeris {
+  GlonassEphemeris() = delete;
+
+  class Reader;
+  class Builder;
+  class Pipeline;
+
+  struct _capnpPrivate {
+    CAPNP_DECLARE_STRUCT_HEADER(b9c5911198388e0c, 17, 0)
     #if !CAPNP_LITE
     static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
     #endif  // !CAPNP_LITE
@@ -5820,8 +5838,8 @@ public:
 
   inline  ::int8_t getCalPercDEPRECATED() const;
 
-  inline bool hasCanMonoTimes() const;
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimes() const;
+  inline bool hasCanMonoTimesDEPRECATED() const;
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimesDEPRECATED() const;
 
   inline  ::uint64_t getCarStateMonoTime() const;
 
@@ -5899,13 +5917,13 @@ public:
   inline  ::int8_t getCalPercDEPRECATED();
   inline void setCalPercDEPRECATED( ::int8_t value);
 
-  inline bool hasCanMonoTimes();
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimes();
-  inline void setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
-  inline void setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value);
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimes(unsigned int size);
-  inline void adoptCanMonoTimes(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimes();
+  inline bool hasCanMonoTimesDEPRECATED();
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimesDEPRECATED();
+  inline void setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline void setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value);
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimesDEPRECATED(unsigned int size);
+  inline void adoptCanMonoTimesDEPRECATED(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
+  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimesDEPRECATED();
 
   inline  ::uint64_t getCarStateMonoTime();
   inline void setCarStateMonoTime( ::uint64_t value);
@@ -6440,8 +6458,8 @@ public:
 
   inline bool getSteerOverrideDEPRECATED() const;
 
-  inline bool hasCanMonoTimes() const;
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimes() const;
+  inline bool hasCanMonoTimesDEPRECATED() const;
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimesDEPRECATED() const;
 
   inline float getVCruise() const;
 
@@ -6614,13 +6632,13 @@ public:
   inline bool getSteerOverrideDEPRECATED();
   inline void setSteerOverrideDEPRECATED(bool value);
 
-  inline bool hasCanMonoTimes();
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimes();
-  inline void setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
-  inline void setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value);
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimes(unsigned int size);
-  inline void adoptCanMonoTimes(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimes();
+  inline bool hasCanMonoTimesDEPRECATED();
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimesDEPRECATED();
+  inline void setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline void setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value);
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimesDEPRECATED(unsigned int size);
+  inline void adoptCanMonoTimesDEPRECATED(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
+  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimesDEPRECATED();
 
   inline float getVCruise();
   inline void setVCruise(float value);
@@ -10695,7 +10713,7 @@ public:
   }
 #endif  // !CAPNP_LITE
 
-  inline  ::uint64_t getUbloxMonoTime() const;
+  inline  ::uint64_t getMeasTime() const;
 
   inline  ::int16_t getGpsWeek() const;
 
@@ -10704,14 +10722,17 @@ public:
   inline bool hasCorrectedMeasurements() const;
   inline  ::capnp::List< ::cereal::GnssMeasurements::CorrectedMeasurement,  ::capnp::Kind::STRUCT>::Reader getCorrectedMeasurements() const;
 
+  inline bool hasKalmanPositionECEF() const;
+  inline  ::cereal::LiveLocationKalman::Measurement::Reader getKalmanPositionECEF() const;
+
+  inline bool hasKalmanVelocityECEF() const;
+  inline  ::cereal::LiveLocationKalman::Measurement::Reader getKalmanVelocityECEF() const;
+
   inline bool hasPositionECEF() const;
   inline  ::cereal::LiveLocationKalman::Measurement::Reader getPositionECEF() const;
 
   inline bool hasVelocityECEF() const;
   inline  ::cereal::LiveLocationKalman::Measurement::Reader getVelocityECEF() const;
-
-  inline bool hasPositionFixECEF() const;
-  inline  ::cereal::LiveLocationKalman::Measurement::Reader getPositionFixECEF() const;
 
 private:
   ::capnp::_::StructReader _reader;
@@ -10741,8 +10762,8 @@ public:
   inline ::kj::StringTree toString() const { return asReader().toString(); }
 #endif  // !CAPNP_LITE
 
-  inline  ::uint64_t getUbloxMonoTime();
-  inline void setUbloxMonoTime( ::uint64_t value);
+  inline  ::uint64_t getMeasTime();
+  inline void setMeasTime( ::uint64_t value);
 
   inline  ::int16_t getGpsWeek();
   inline void setGpsWeek( ::int16_t value);
@@ -10757,6 +10778,20 @@ public:
   inline void adoptCorrectedMeasurements(::capnp::Orphan< ::capnp::List< ::cereal::GnssMeasurements::CorrectedMeasurement,  ::capnp::Kind::STRUCT>>&& value);
   inline ::capnp::Orphan< ::capnp::List< ::cereal::GnssMeasurements::CorrectedMeasurement,  ::capnp::Kind::STRUCT>> disownCorrectedMeasurements();
 
+  inline bool hasKalmanPositionECEF();
+  inline  ::cereal::LiveLocationKalman::Measurement::Builder getKalmanPositionECEF();
+  inline void setKalmanPositionECEF( ::cereal::LiveLocationKalman::Measurement::Reader value);
+  inline  ::cereal::LiveLocationKalman::Measurement::Builder initKalmanPositionECEF();
+  inline void adoptKalmanPositionECEF(::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value);
+  inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> disownKalmanPositionECEF();
+
+  inline bool hasKalmanVelocityECEF();
+  inline  ::cereal::LiveLocationKalman::Measurement::Builder getKalmanVelocityECEF();
+  inline void setKalmanVelocityECEF( ::cereal::LiveLocationKalman::Measurement::Reader value);
+  inline  ::cereal::LiveLocationKalman::Measurement::Builder initKalmanVelocityECEF();
+  inline void adoptKalmanVelocityECEF(::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value);
+  inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> disownKalmanVelocityECEF();
+
   inline bool hasPositionECEF();
   inline  ::cereal::LiveLocationKalman::Measurement::Builder getPositionECEF();
   inline void setPositionECEF( ::cereal::LiveLocationKalman::Measurement::Reader value);
@@ -10770,13 +10805,6 @@ public:
   inline  ::cereal::LiveLocationKalman::Measurement::Builder initVelocityECEF();
   inline void adoptVelocityECEF(::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value);
   inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> disownVelocityECEF();
-
-  inline bool hasPositionFixECEF();
-  inline  ::cereal::LiveLocationKalman::Measurement::Builder getPositionFixECEF();
-  inline void setPositionFixECEF( ::cereal::LiveLocationKalman::Measurement::Reader value);
-  inline  ::cereal::LiveLocationKalman::Measurement::Builder initPositionFixECEF();
-  inline void adoptPositionFixECEF(::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value);
-  inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> disownPositionFixECEF();
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -10796,9 +10824,10 @@ public:
   inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
       : _typeless(kj::mv(typeless)) {}
 
+  inline  ::cereal::LiveLocationKalman::Measurement::Pipeline getKalmanPositionECEF();
+  inline  ::cereal::LiveLocationKalman::Measurement::Pipeline getKalmanVelocityECEF();
   inline  ::cereal::LiveLocationKalman::Measurement::Pipeline getPositionECEF();
   inline  ::cereal::LiveLocationKalman::Measurement::Pipeline getVelocityECEF();
-  inline  ::cereal::LiveLocationKalman::Measurement::Pipeline getPositionFixECEF();
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
@@ -11070,6 +11099,10 @@ public:
   inline bool hasHwStatus2() const;
   inline  ::cereal::UbloxGnss::HwStatus2::Reader getHwStatus2() const;
 
+  inline bool isGlonassEphemeris() const;
+  inline bool hasGlonassEphemeris() const;
+  inline  ::cereal::UbloxGnss::GlonassEphemeris::Reader getGlonassEphemeris() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -11138,6 +11171,14 @@ public:
   inline  ::cereal::UbloxGnss::HwStatus2::Builder initHwStatus2();
   inline void adoptHwStatus2(::capnp::Orphan< ::cereal::UbloxGnss::HwStatus2>&& value);
   inline ::capnp::Orphan< ::cereal::UbloxGnss::HwStatus2> disownHwStatus2();
+
+  inline bool isGlonassEphemeris();
+  inline bool hasGlonassEphemeris();
+  inline  ::cereal::UbloxGnss::GlonassEphemeris::Builder getGlonassEphemeris();
+  inline void setGlonassEphemeris( ::cereal::UbloxGnss::GlonassEphemeris::Reader value);
+  inline  ::cereal::UbloxGnss::GlonassEphemeris::Builder initGlonassEphemeris();
+  inline void adoptGlonassEphemeris(::capnp::Orphan< ::cereal::UbloxGnss::GlonassEphemeris>&& value);
+  inline ::capnp::Orphan< ::cereal::UbloxGnss::GlonassEphemeris> disownGlonassEphemeris();
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -11690,6 +11731,8 @@ public:
   inline bool hasIonoBeta() const;
   inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader getIonoBeta() const;
 
+  inline  ::uint32_t getTowCount() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -11847,6 +11890,9 @@ public:
   inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder initIonoBeta(unsigned int size);
   inline void adoptIonoBeta(::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value);
   inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> disownIonoBeta();
+
+  inline  ::uint32_t getTowCount();
+  inline void setTowCount( ::uint32_t value);
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -12186,6 +12232,222 @@ private:
 class UbloxGnss::HwStatus2::Pipeline {
 public:
   typedef HwStatus2 Pipelines;
+
+  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+      : _typeless(kj::mv(typeless)) {}
+
+private:
+  ::capnp::AnyPointer::Pipeline _typeless;
+  friend class ::capnp::PipelineHook;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::ToDynamic_;
+};
+#endif  // !CAPNP_LITE
+
+class UbloxGnss::GlonassEphemeris::Reader {
+public:
+  typedef GlonassEphemeris Reads;
+
+  Reader() = default;
+  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+
+  inline ::capnp::MessageSize totalSize() const {
+    return _reader.totalSize().asPublic();
+  }
+
+#if !CAPNP_LITE
+  inline ::kj::StringTree toString() const {
+    return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
+  }
+#endif  // !CAPNP_LITE
+
+  inline  ::uint16_t getSvId() const;
+
+  inline  ::uint16_t getYear() const;
+
+  inline  ::uint16_t getDayInYear() const;
+
+  inline  ::uint16_t getHour() const;
+
+  inline  ::uint16_t getMinute() const;
+
+  inline float getSecond() const;
+
+  inline double getX() const;
+
+  inline double getXVel() const;
+
+  inline double getXAccel() const;
+
+  inline double getY() const;
+
+  inline double getYVel() const;
+
+  inline double getYAccel() const;
+
+  inline double getZ() const;
+
+  inline double getZVel() const;
+
+  inline double getZAccel() const;
+
+  inline  ::uint8_t getSvType() const;
+
+  inline float getSvURA() const;
+
+  inline  ::uint8_t getAge() const;
+
+  inline  ::uint8_t getSvHealth() const;
+
+  inline  ::uint16_t getTk() const;
+
+  inline  ::uint16_t getTb() const;
+
+  inline double getTauN() const;
+
+  inline double getDeltaTauN() const;
+
+  inline double getGammaN() const;
+
+  inline  ::uint8_t getP1() const;
+
+  inline  ::uint8_t getP2() const;
+
+  inline  ::uint8_t getP3() const;
+
+  inline  ::uint8_t getP4() const;
+
+  inline  ::uint32_t getFreqNum() const;
+
+private:
+  ::capnp::_::StructReader _reader;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::List;
+  friend class ::capnp::MessageBuilder;
+  friend class ::capnp::Orphanage;
+};
+
+class UbloxGnss::GlonassEphemeris::Builder {
+public:
+  typedef GlonassEphemeris Builds;
+
+  Builder() = delete;  // Deleted to discourage incorrect usage.
+                       // You can explicitly initialize to nullptr instead.
+  inline Builder(decltype(nullptr)) {}
+  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline operator Reader() const { return Reader(_builder.asReader()); }
+  inline Reader asReader() const { return *this; }
+
+  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+#if !CAPNP_LITE
+  inline ::kj::StringTree toString() const { return asReader().toString(); }
+#endif  // !CAPNP_LITE
+
+  inline  ::uint16_t getSvId();
+  inline void setSvId( ::uint16_t value);
+
+  inline  ::uint16_t getYear();
+  inline void setYear( ::uint16_t value);
+
+  inline  ::uint16_t getDayInYear();
+  inline void setDayInYear( ::uint16_t value);
+
+  inline  ::uint16_t getHour();
+  inline void setHour( ::uint16_t value);
+
+  inline  ::uint16_t getMinute();
+  inline void setMinute( ::uint16_t value);
+
+  inline float getSecond();
+  inline void setSecond(float value);
+
+  inline double getX();
+  inline void setX(double value);
+
+  inline double getXVel();
+  inline void setXVel(double value);
+
+  inline double getXAccel();
+  inline void setXAccel(double value);
+
+  inline double getY();
+  inline void setY(double value);
+
+  inline double getYVel();
+  inline void setYVel(double value);
+
+  inline double getYAccel();
+  inline void setYAccel(double value);
+
+  inline double getZ();
+  inline void setZ(double value);
+
+  inline double getZVel();
+  inline void setZVel(double value);
+
+  inline double getZAccel();
+  inline void setZAccel(double value);
+
+  inline  ::uint8_t getSvType();
+  inline void setSvType( ::uint8_t value);
+
+  inline float getSvURA();
+  inline void setSvURA(float value);
+
+  inline  ::uint8_t getAge();
+  inline void setAge( ::uint8_t value);
+
+  inline  ::uint8_t getSvHealth();
+  inline void setSvHealth( ::uint8_t value);
+
+  inline  ::uint16_t getTk();
+  inline void setTk( ::uint16_t value);
+
+  inline  ::uint16_t getTb();
+  inline void setTb( ::uint16_t value);
+
+  inline double getTauN();
+  inline void setTauN(double value);
+
+  inline double getDeltaTauN();
+  inline void setDeltaTauN(double value);
+
+  inline double getGammaN();
+  inline void setGammaN(double value);
+
+  inline  ::uint8_t getP1();
+  inline void setP1( ::uint8_t value);
+
+  inline  ::uint8_t getP2();
+  inline void setP2( ::uint8_t value);
+
+  inline  ::uint8_t getP3();
+  inline void setP3( ::uint8_t value);
+
+  inline  ::uint8_t getP4();
+  inline void setP4( ::uint8_t value);
+
+  inline  ::uint32_t getFreqNum();
+  inline void setFreqNum( ::uint32_t value);
+
+private:
+  ::capnp::_::StructBuilder _builder;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::ToDynamic_;
+  friend class ::capnp::Orphanage;
+  template <typename, ::capnp::Kind>
+  friend struct ::capnp::_::PointerHelpers;
+};
+
+#if !CAPNP_LITE
+class UbloxGnss::GlonassEphemeris::Pipeline {
+public:
+  typedef GlonassEphemeris Pipelines;
 
   inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
   inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
@@ -24924,40 +25186,40 @@ inline void RadarState::Builder::setCalPercDEPRECATED( ::int8_t value) {
       ::capnp::bounded<5>() * ::capnp::ELEMENTS, value);
 }
 
-inline bool RadarState::Reader::hasCanMonoTimes() const {
+inline bool RadarState::Reader::hasCanMonoTimesDEPRECATED() const {
   return !_reader.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
 }
-inline bool RadarState::Builder::hasCanMonoTimes() {
+inline bool RadarState::Builder::hasCanMonoTimesDEPRECATED() {
   return !_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader RadarState::Reader::getCanMonoTimes() const {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader RadarState::Reader::getCanMonoTimesDEPRECATED() const {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarState::Builder::getCanMonoTimes() {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarState::Builder::getCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
-inline void RadarState::Builder::setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
+inline void RadarState::Builder::setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), value);
 }
-inline void RadarState::Builder::setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value) {
+inline void RadarState::Builder::setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), value);
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarState::Builder::initCanMonoTimes(unsigned int size) {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarState::Builder::initCanMonoTimesDEPRECATED(unsigned int size) {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), size);
 }
-inline void RadarState::Builder::adoptCanMonoTimes(
+inline void RadarState::Builder::adoptCanMonoTimesDEPRECATED(
     ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> RadarState::Builder::disownCanMonoTimes() {
+inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> RadarState::Builder::disownCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
@@ -25980,40 +26242,40 @@ inline void ControlsState::Builder::setSteerOverrideDEPRECATED(bool value) {
       ::capnp::bounded<705>() * ::capnp::ELEMENTS, value);
 }
 
-inline bool ControlsState::Reader::hasCanMonoTimes() const {
+inline bool ControlsState::Reader::hasCanMonoTimesDEPRECATED() const {
   return !_reader.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
 }
-inline bool ControlsState::Builder::hasCanMonoTimes() {
+inline bool ControlsState::Builder::hasCanMonoTimesDEPRECATED() {
   return !_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader ControlsState::Reader::getCanMonoTimes() const {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader ControlsState::Reader::getCanMonoTimesDEPRECATED() const {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder ControlsState::Builder::getCanMonoTimes() {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder ControlsState::Builder::getCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void ControlsState::Builder::setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
+inline void ControlsState::Builder::setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS), value);
 }
-inline void ControlsState::Builder::setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value) {
+inline void ControlsState::Builder::setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS), value);
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder ControlsState::Builder::initCanMonoTimes(unsigned int size) {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder ControlsState::Builder::initCanMonoTimesDEPRECATED(unsigned int size) {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS), size);
 }
-inline void ControlsState::Builder::adoptCanMonoTimes(
+inline void ControlsState::Builder::adoptCanMonoTimesDEPRECATED(
     ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> ControlsState::Builder::disownCanMonoTimes() {
+inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> ControlsState::Builder::disownCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS));
 }
@@ -33177,16 +33439,16 @@ inline void ProcLog::Mem::Builder::setShared( ::uint64_t value) {
       ::capnp::bounded<7>() * ::capnp::ELEMENTS, value);
 }
 
-inline  ::uint64_t GnssMeasurements::Reader::getUbloxMonoTime() const {
+inline  ::uint64_t GnssMeasurements::Reader::getMeasTime() const {
   return _reader.getDataField< ::uint64_t>(
       ::capnp::bounded<0>() * ::capnp::ELEMENTS);
 }
 
-inline  ::uint64_t GnssMeasurements::Builder::getUbloxMonoTime() {
+inline  ::uint64_t GnssMeasurements::Builder::getMeasTime() {
   return _builder.getDataField< ::uint64_t>(
       ::capnp::bounded<0>() * ::capnp::ELEMENTS);
 }
-inline void GnssMeasurements::Builder::setUbloxMonoTime( ::uint64_t value) {
+inline void GnssMeasurements::Builder::setMeasTime( ::uint64_t value) {
   _builder.setDataField< ::uint64_t>(
       ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
 }
@@ -33253,121 +33515,160 @@ inline ::capnp::Orphan< ::capnp::List< ::cereal::GnssMeasurements::CorrectedMeas
       ::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
-inline bool GnssMeasurements::Reader::hasPositionECEF() const {
+inline bool GnssMeasurements::Reader::hasKalmanPositionECEF() const {
   return !_reader.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
 }
-inline bool GnssMeasurements::Builder::hasPositionECEF() {
+inline bool GnssMeasurements::Builder::hasKalmanPositionECEF() {
   return !_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getPositionECEF() const {
+inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getKalmanPositionECEF() const {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_reader.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getPositionECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getKalmanPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getPositionECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getKalmanPositionECEF() {
   return  ::cereal::LiveLocationKalman::Measurement::Pipeline(_typeless.getPointerField(1));
 }
 #endif  // !CAPNP_LITE
-inline void GnssMeasurements::Builder::setPositionECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
+inline void GnssMeasurements::Builder::setKalmanPositionECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::set(_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS), value);
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initPositionECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initKalmanPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::init(_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void GnssMeasurements::Builder::adoptPositionECEF(
+inline void GnssMeasurements::Builder::adoptKalmanPositionECEF(
     ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::adopt(_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownPositionECEF() {
+inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownKalmanPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::disown(_builder.getPointerField(
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
-inline bool GnssMeasurements::Reader::hasVelocityECEF() const {
+inline bool GnssMeasurements::Reader::hasKalmanVelocityECEF() const {
   return !_reader.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
 }
-inline bool GnssMeasurements::Builder::hasVelocityECEF() {
+inline bool GnssMeasurements::Builder::hasKalmanVelocityECEF() {
   return !_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getVelocityECEF() const {
+inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getKalmanVelocityECEF() const {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_reader.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getVelocityECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getKalmanVelocityECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getVelocityECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getKalmanVelocityECEF() {
   return  ::cereal::LiveLocationKalman::Measurement::Pipeline(_typeless.getPointerField(2));
 }
 #endif  // !CAPNP_LITE
-inline void GnssMeasurements::Builder::setVelocityECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
+inline void GnssMeasurements::Builder::setKalmanVelocityECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::set(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), value);
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initVelocityECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initKalmanVelocityECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::init(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
-inline void GnssMeasurements::Builder::adoptVelocityECEF(
+inline void GnssMeasurements::Builder::adoptKalmanVelocityECEF(
     ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::adopt(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownVelocityECEF() {
+inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownKalmanVelocityECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::disown(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
 
-inline bool GnssMeasurements::Reader::hasPositionFixECEF() const {
+inline bool GnssMeasurements::Reader::hasPositionECEF() const {
   return !_reader.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
 }
-inline bool GnssMeasurements::Builder::hasPositionFixECEF() {
+inline bool GnssMeasurements::Builder::hasPositionECEF() {
   return !_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getPositionFixECEF() const {
+inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getPositionECEF() const {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_reader.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getPositionFixECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getPositionFixECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getPositionECEF() {
   return  ::cereal::LiveLocationKalman::Measurement::Pipeline(_typeless.getPointerField(3));
 }
 #endif  // !CAPNP_LITE
-inline void GnssMeasurements::Builder::setPositionFixECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
+inline void GnssMeasurements::Builder::setPositionECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::set(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), value);
 }
-inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initPositionFixECEF() {
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::init(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
-inline void GnssMeasurements::Builder::adoptPositionFixECEF(
+inline void GnssMeasurements::Builder::adoptPositionECEF(
     ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value) {
   ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::adopt(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownPositionFixECEF() {
+inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownPositionECEF() {
   return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::disown(_builder.getPointerField(
       ::capnp::bounded<3>() * ::capnp::POINTERS));
+}
+
+inline bool GnssMeasurements::Reader::hasVelocityECEF() const {
+  return !_reader.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS).isNull();
+}
+inline bool GnssMeasurements::Builder::hasVelocityECEF() {
+  return !_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS).isNull();
+}
+inline  ::cereal::LiveLocationKalman::Measurement::Reader GnssMeasurements::Reader::getVelocityECEF() const {
+  return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_reader.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS));
+}
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::getVelocityECEF() {
+  return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::get(_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS));
+}
+#if !CAPNP_LITE
+inline  ::cereal::LiveLocationKalman::Measurement::Pipeline GnssMeasurements::Pipeline::getVelocityECEF() {
+  return  ::cereal::LiveLocationKalman::Measurement::Pipeline(_typeless.getPointerField(4));
+}
+#endif  // !CAPNP_LITE
+inline void GnssMeasurements::Builder::setVelocityECEF( ::cereal::LiveLocationKalman::Measurement::Reader value) {
+  ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::set(_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS), value);
+}
+inline  ::cereal::LiveLocationKalman::Measurement::Builder GnssMeasurements::Builder::initVelocityECEF() {
+  return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::init(_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS));
+}
+inline void GnssMeasurements::Builder::adoptVelocityECEF(
+    ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement>&& value) {
+  ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::adopt(_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS), kj::mv(value));
+}
+inline ::capnp::Orphan< ::cereal::LiveLocationKalman::Measurement> GnssMeasurements::Builder::disownVelocityECEF() {
+  return ::capnp::_::PointerHelpers< ::cereal::LiveLocationKalman::Measurement>::disown(_builder.getPointerField(
+      ::capnp::bounded<4>() * ::capnp::POINTERS));
 }
 
 inline  ::cereal::GnssMeasurements::ConstellationId GnssMeasurements::CorrectedMeasurement::Reader::getConstellationId() const {
@@ -33901,6 +34202,60 @@ inline ::capnp::Orphan< ::cereal::UbloxGnss::HwStatus2> UbloxGnss::Builder::diso
   KJ_IREQUIRE((which() == UbloxGnss::HW_STATUS2),
               "Must check which() before get()ing a union member.");
   return ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::HwStatus2>::disown(_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS));
+}
+
+inline bool UbloxGnss::Reader::isGlonassEphemeris() const {
+  return which() == UbloxGnss::GLONASS_EPHEMERIS;
+}
+inline bool UbloxGnss::Builder::isGlonassEphemeris() {
+  return which() == UbloxGnss::GLONASS_EPHEMERIS;
+}
+inline bool UbloxGnss::Reader::hasGlonassEphemeris() const {
+  if (which() != UbloxGnss::GLONASS_EPHEMERIS) return false;
+  return !_reader.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+}
+inline bool UbloxGnss::Builder::hasGlonassEphemeris() {
+  if (which() != UbloxGnss::GLONASS_EPHEMERIS) return false;
+  return !_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+}
+inline  ::cereal::UbloxGnss::GlonassEphemeris::Reader UbloxGnss::Reader::getGlonassEphemeris() const {
+  KJ_IREQUIRE((which() == UbloxGnss::GLONASS_EPHEMERIS),
+              "Must check which() before get()ing a union member.");
+  return ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::get(_reader.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS));
+}
+inline  ::cereal::UbloxGnss::GlonassEphemeris::Builder UbloxGnss::Builder::getGlonassEphemeris() {
+  KJ_IREQUIRE((which() == UbloxGnss::GLONASS_EPHEMERIS),
+              "Must check which() before get()ing a union member.");
+  return ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::get(_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS));
+}
+inline void UbloxGnss::Builder::setGlonassEphemeris( ::cereal::UbloxGnss::GlonassEphemeris::Reader value) {
+  _builder.setDataField<UbloxGnss::Which>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS, UbloxGnss::GLONASS_EPHEMERIS);
+  ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::set(_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+}
+inline  ::cereal::UbloxGnss::GlonassEphemeris::Builder UbloxGnss::Builder::initGlonassEphemeris() {
+  _builder.setDataField<UbloxGnss::Which>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS, UbloxGnss::GLONASS_EPHEMERIS);
+  return ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::init(_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS));
+}
+inline void UbloxGnss::Builder::adoptGlonassEphemeris(
+    ::capnp::Orphan< ::cereal::UbloxGnss::GlonassEphemeris>&& value) {
+  _builder.setDataField<UbloxGnss::Which>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS, UbloxGnss::GLONASS_EPHEMERIS);
+  ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::adopt(_builder.getPointerField(
+      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+}
+inline ::capnp::Orphan< ::cereal::UbloxGnss::GlonassEphemeris> UbloxGnss::Builder::disownGlonassEphemeris() {
+  KJ_IREQUIRE((which() == UbloxGnss::GLONASS_EPHEMERIS),
+              "Must check which() before get()ing a union member.");
+  return ::capnp::_::PointerHelpers< ::cereal::UbloxGnss::GlonassEphemeris>::disown(_builder.getPointerField(
       ::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
@@ -34932,6 +35287,20 @@ inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> UbloxG
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
+inline  ::uint32_t UbloxGnss::Ephemeris::Reader::getTowCount() const {
+  return _reader.getDataField< ::uint32_t>(
+      ::capnp::bounded<65>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint32_t UbloxGnss::Ephemeris::Builder::getTowCount() {
+  return _builder.getDataField< ::uint32_t>(
+      ::capnp::bounded<65>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::Ephemeris::Builder::setTowCount( ::uint32_t value) {
+  _builder.setDataField< ::uint32_t>(
+      ::capnp::bounded<65>() * ::capnp::ELEMENTS, value);
+}
+
 inline  ::uint32_t UbloxGnss::IonoData::Reader::getSvHealth() const {
   return _reader.getDataField< ::uint32_t>(
       ::capnp::bounded<0>() * ::capnp::ELEMENTS);
@@ -35258,6 +35627,412 @@ inline  ::uint32_t UbloxGnss::HwStatus2::Builder::getPostStatus() {
 inline void UbloxGnss::HwStatus2::Builder::setPostStatus( ::uint32_t value) {
   _builder.setDataField< ::uint32_t>(
       ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getSvId() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getSvId() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setSvId( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getYear() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getYear() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setYear( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getDayInYear() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getDayInYear() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setDayInYear( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getHour() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getHour() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setHour( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getMinute() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getMinute() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setMinute( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS, value);
+}
+
+inline float UbloxGnss::GlonassEphemeris::Reader::getSecond() const {
+  return _reader.getDataField<float>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+
+inline float UbloxGnss::GlonassEphemeris::Builder::getSecond() {
+  return _builder.getDataField<float>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setSecond(float value) {
+  _builder.setDataField<float>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getX() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getX() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setX(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getXVel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getXVel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setXVel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getXAccel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getXAccel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setXAccel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<4>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getY() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getY() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setY(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<5>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getYVel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<6>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getYVel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<6>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setYVel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<6>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getYAccel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getYAccel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setYAccel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<7>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getZ() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getZ() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setZ(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<8>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getZVel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<9>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getZVel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<9>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setZVel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<9>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getZAccel() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getZAccel() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setZAccel(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getSvType() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getSvType() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setSvType( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<10>() * ::capnp::ELEMENTS, value);
+}
+
+inline float UbloxGnss::GlonassEphemeris::Reader::getSvURA() const {
+  return _reader.getDataField<float>(
+      ::capnp::bounded<22>() * ::capnp::ELEMENTS);
+}
+
+inline float UbloxGnss::GlonassEphemeris::Builder::getSvURA() {
+  return _builder.getDataField<float>(
+      ::capnp::bounded<22>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setSvURA(float value) {
+  _builder.setDataField<float>(
+      ::capnp::bounded<22>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getAge() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getAge() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setAge( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<11>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getSvHealth() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<92>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getSvHealth() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<92>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setSvHealth( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<92>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getTk() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<47>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getTk() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<47>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setTk( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<47>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Reader::getTb() const {
+  return _reader.getDataField< ::uint16_t>(
+      ::capnp::bounded<48>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint16_t UbloxGnss::GlonassEphemeris::Builder::getTb() {
+  return _builder.getDataField< ::uint16_t>(
+      ::capnp::bounded<48>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setTb( ::uint16_t value) {
+  _builder.setDataField< ::uint16_t>(
+      ::capnp::bounded<48>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getTauN() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<13>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getTauN() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<13>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setTauN(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<13>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getDeltaTauN() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getDeltaTauN() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setDeltaTauN(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<14>() * ::capnp::ELEMENTS, value);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Reader::getGammaN() const {
+  return _reader.getDataField<double>(
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
+}
+
+inline double UbloxGnss::GlonassEphemeris::Builder::getGammaN() {
+  return _builder.getDataField<double>(
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setGammaN(double value) {
+  _builder.setDataField<double>(
+      ::capnp::bounded<15>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getP1() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<93>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getP1() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<93>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setP1( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<93>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getP2() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<98>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getP2() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<98>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setP2( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<98>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getP3() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<99>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getP3() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<99>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setP3( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<99>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Reader::getP4() const {
+  return _reader.getDataField< ::uint8_t>(
+      ::capnp::bounded<100>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint8_t UbloxGnss::GlonassEphemeris::Builder::getP4() {
+  return _builder.getDataField< ::uint8_t>(
+      ::capnp::bounded<100>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setP4( ::uint8_t value) {
+  _builder.setDataField< ::uint8_t>(
+      ::capnp::bounded<100>() * ::capnp::ELEMENTS, value);
+}
+
+inline  ::uint32_t UbloxGnss::GlonassEphemeris::Reader::getFreqNum() const {
+  return _reader.getDataField< ::uint32_t>(
+      ::capnp::bounded<32>() * ::capnp::ELEMENTS);
+}
+
+inline  ::uint32_t UbloxGnss::GlonassEphemeris::Builder::getFreqNum() {
+  return _builder.getDataField< ::uint32_t>(
+      ::capnp::bounded<32>() * ::capnp::ELEMENTS);
+}
+inline void UbloxGnss::GlonassEphemeris::Builder::setFreqNum( ::uint32_t value) {
+  _builder.setDataField< ::uint32_t>(
+      ::capnp::bounded<32>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::cereal::QcomGnss::Which QcomGnss::Reader::which() const {

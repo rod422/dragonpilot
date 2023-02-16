@@ -21,7 +21,6 @@ from selfdrive.controls.lib.turn_speed_controller import TurnSpeedController
 from selfdrive.controls.lib.events import Events
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
-AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
@@ -42,24 +41,24 @@ DP_ACCEL_NORMAL = 1
 DP_ACCEL_SPORT = 2
 
 # accel profile by @arne182 modified by cgw
-_DP_CRUISE_MIN_V =       [-0.65,  -0.60,  -0.73, -0.75,  -0.75, -0.75]
-_DP_CRUISE_MIN_V_ECO =   [-0.65,  -0.60,  -0.70, -0.70,  -0.65, -0.65]
-_DP_CRUISE_MIN_V_SPORT = [-0.70,  -0.80,  -0.90, -0.90,  -0.80, -0.70]
-_DP_CRUISE_MIN_BP =      [0.,     0.07,   10.,   20.,    30.,   55.]
+_DP_CRUISE_MIN_V =       [-0.50,  -0.50,  -0.50, -0.50,  -0.50, -0.45, -0.45]
+_DP_CRUISE_MIN_V_ECO =   [-0.40,  -0.40,  -0.40, -0.40,  -0.40, -0.40, -0.40]
+_DP_CRUISE_MIN_V_SPORT = [-0.52,  -0.52,  -0.52, -0.52,  -0.52, -0.47, -0.47]
+_DP_CRUISE_MIN_BP =      [0.,     0.07,   3.1,   10.,   20.,    30.,   55.]
 
-_DP_CRUISE_MAX_V =       [1.4, 1.4, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
-_DP_CRUISE_MAX_V_ECO =   [1.2, 1.2, 1.0, 0.7,  0.48, 0.35, 0.25, 0.15, 0.12, 0.06]
-_DP_CRUISE_MAX_V_SPORT = [1.6, 1.6, 1.4, 1.0,  1.2,  1.2,  1.2,  1.0,  0.8,  0.5]
+_DP_CRUISE_MAX_V =       [1.6, 1.4, 1.2, 0.95, 0.77, 0.67, 0.55, 0.47, 0.31, 0.13]
+_DP_CRUISE_MAX_V_ECO =   [1.4, 1.2, 1.0, 0.7,  0.48, 0.35, 0.25, 0.15, 0.12, 0.06]
+_DP_CRUISE_MAX_V_SPORT = [1.8, 1.6, 1.4, 1.0,  1.2,  1.2,  1.2,  1.0,  0.8,  0.5]
 _DP_CRUISE_MAX_BP =      [0.,  3.,  6.,  8.,   11.,  15.,  20.,  25.,  30.,  55.]
 
-_dp_cruise_min_v =       [-0.65,  -0.60,  -0.73, -0.75,  -0.75, -0.75]
-_dp_cruise_min_v_eco =   [-0.65,  -0.60,  -0.70, -0.70,  -0.65, -0.65]
-_dp_cruise_min_v_sport = [-0.70,  -0.80,  -0.90, -0.90,  -0.80, -0.70]
-_dp_cruise_min_bp =      [0.,     0.07,   10.,   20.,    30.,   55.]
+_dp_cruise_min_v =       [-0.50,  -0.50,  -0.50, -0.50,  -0.50, -0.45, -0.45]
+_dp_cruise_min_v_eco =   [-0.40,  -0.40,  -0.40, -0.40,  -0.40, -0.40, -0.40]
+_dp_cruise_min_v_sport = [-0.52,  -0.52,  -0.52, -0.52,  -0.52, -0.47, -0.47]
+_dp_cruise_min_bp =      [0.,     0.07,   3.1,   10.,   20.,    30.,   55.]
 
-_dp_cruise_max_v =       [1.8, 1.6, 1.4, 1.4, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3]
-_dp_cruise_max_v_eco =   [1.6, 1.4, 1.2, 1.2, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
-_dp_cruise_max_v_sport = [2.0, 1.8, 1.6, 1.6, 1.4, 1.4, 1.2, 1.0, 0.8, 0.5]
+_dp_cruise_max_v =       [1.6, 1.4, 1.4, 1.4, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3]
+_dp_cruise_max_v_eco =   [1.4, 1.4, 1.2, 1.2, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
+_dp_cruise_max_v_sport = [1.8, 1.8, 1.6, 1.6, 1.4, 1.4, 1.2, 1.0, 0.8, 0.5]
 _dp_cruise_max_bp =      [0.,  3.,  6.,  8.,  11., 15., 20., 25., 30., 55.]
 
 
@@ -344,9 +343,7 @@ class LongitudinalPlanner:
                                                                         self.a_desired, v_cruise, sm)
 
     if force_slow_decel:
-      # if required so, force a smooth deceleration
-      accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
-      accel_limits_turns[0] = min(accel_limits_turns[0], accel_limits_turns[1])
+      v_cruise = 0.0
     # clip limits, cannot init MPC outside of bounds
     accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05, a_min_sol)
     accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
@@ -357,7 +354,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'])
     self.dp_e2e_tf = self.get_df(v_ego)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise_sol, x, v, a, j, prev_accel_constraint, self.dp_e2e_tf)
+    self.mpc.update(sm['radarState'], v_cruise_sol, x, v, a, j, prev_accel_constraint, self.dp_e2e_tf)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)

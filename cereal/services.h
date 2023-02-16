@@ -12,7 +12,7 @@ static struct service services[] = {
   { "temperatureSensor", 8007, true, 100, 100 },
   { "gpsNMEA", 8008, true, 9, -1 },
   { "deviceState", 8009, true, 2, 1 },
-  { "can", 8010, true, 100, -1 },
+  { "can", 8010, true, 100, 1223 },
   { "controlsState", 8011, true, 100, 10 },
   { "pandaStates", 8012, true, 2, 1 },
   { "peripheralState", 8013, true, 2, 1 },

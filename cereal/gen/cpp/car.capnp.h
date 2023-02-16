@@ -252,7 +252,7 @@ enum class SafetyModel_95551e5b1edaf451: uint16_t {
   SUBARU_LEGACY,
   HYUNDAI_LEGACY,
   HYUNDAI_COMMUNITY,
-  STELLANTIS_D_E_P_R_E_C_A_T_E_D,
+  VOLKSWAGEN_MLB,
   HONGQI,
   BODY,
   HYUNDAI_CANFD,
@@ -857,8 +857,8 @@ public:
   inline bool hasButtonEvents() const;
   inline  ::capnp::List< ::cereal::CarState::ButtonEvent,  ::capnp::Kind::STRUCT>::Reader getButtonEvents() const;
 
-  inline bool hasCanMonoTimes() const;
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimes() const;
+  inline bool hasCanMonoTimesDEPRECATED() const;
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimesDEPRECATED() const;
 
   inline bool hasEvents() const;
   inline  ::capnp::List< ::cereal::CarEvent,  ::capnp::Kind::STRUCT>::Reader getEvents() const;
@@ -1014,13 +1014,13 @@ public:
   inline void adoptButtonEvents(::capnp::Orphan< ::capnp::List< ::cereal::CarState::ButtonEvent,  ::capnp::Kind::STRUCT>>&& value);
   inline ::capnp::Orphan< ::capnp::List< ::cereal::CarState::ButtonEvent,  ::capnp::Kind::STRUCT>> disownButtonEvents();
 
-  inline bool hasCanMonoTimes();
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimes();
-  inline void setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
-  inline void setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value);
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimes(unsigned int size);
-  inline void adoptCanMonoTimes(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimes();
+  inline bool hasCanMonoTimesDEPRECATED();
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimesDEPRECATED();
+  inline void setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline void setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value);
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimesDEPRECATED(unsigned int size);
+  inline void adoptCanMonoTimesDEPRECATED(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
+  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimesDEPRECATED();
 
   inline bool hasEvents();
   inline  ::capnp::List< ::cereal::CarEvent,  ::capnp::Kind::STRUCT>::Builder getEvents();
@@ -1468,8 +1468,8 @@ public:
   inline bool hasPoints() const;
   inline  ::capnp::List< ::cereal::RadarData::RadarPoint,  ::capnp::Kind::STRUCT>::Reader getPoints() const;
 
-  inline bool hasCanMonoTimes() const;
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimes() const;
+  inline bool hasCanMonoTimesDEPRECATED() const;
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader getCanMonoTimesDEPRECATED() const;
 
 private:
   ::capnp::_::StructReader _reader;
@@ -1514,13 +1514,13 @@ public:
   inline void adoptPoints(::capnp::Orphan< ::capnp::List< ::cereal::RadarData::RadarPoint,  ::capnp::Kind::STRUCT>>&& value);
   inline ::capnp::Orphan< ::capnp::List< ::cereal::RadarData::RadarPoint,  ::capnp::Kind::STRUCT>> disownPoints();
 
-  inline bool hasCanMonoTimes();
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimes();
-  inline void setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
-  inline void setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value);
-  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimes(unsigned int size);
-  inline void adoptCanMonoTimes(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimes();
+  inline bool hasCanMonoTimesDEPRECATED();
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder getCanMonoTimesDEPRECATED();
+  inline void setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline void setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value);
+  inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder initCanMonoTimesDEPRECATED(unsigned int size);
+  inline void adoptCanMonoTimesDEPRECATED(::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value);
+  inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> disownCanMonoTimesDEPRECATED();
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -2273,7 +2273,7 @@ public:
 
   inline  ::cereal::CarParams::SteerControlType getSteerControlType() const;
 
-  inline bool getRadarOffCan() const;
+  inline bool getRadarUnavailable() const;
 
   inline float getSteerActuatorDelay() const;
 
@@ -2519,8 +2519,8 @@ public:
   inline  ::cereal::CarParams::SteerControlType getSteerControlType();
   inline void setSteerControlType( ::cereal::CarParams::SteerControlType value);
 
-  inline bool getRadarOffCan();
-  inline void setRadarOffCan(bool value);
+  inline bool getRadarUnavailable();
+  inline void setRadarUnavailable(bool value);
 
   inline float getSteerActuatorDelay();
   inline void setSteerActuatorDelay(float value);
@@ -3582,6 +3582,8 @@ public:
 
   inline  ::uint8_t getBus() const;
 
+  inline bool getLogging() const;
+
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -3646,6 +3648,9 @@ public:
 
   inline  ::uint8_t getBus();
   inline void setBus( ::uint8_t value);
+
+  inline bool getLogging();
+  inline void setLogging(bool value);
 
 private:
   ::capnp::_::StructBuilder _builder;
@@ -4212,40 +4217,40 @@ inline ::capnp::Orphan< ::capnp::List< ::cereal::CarState::ButtonEvent,  ::capnp
       ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
 
-inline bool CarState::Reader::hasCanMonoTimes() const {
+inline bool CarState::Reader::hasCanMonoTimesDEPRECATED() const {
   return !_reader.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS).isNull();
 }
-inline bool CarState::Builder::hasCanMonoTimes() {
+inline bool CarState::Builder::hasCanMonoTimesDEPRECATED() {
   return !_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS).isNull();
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader CarState::Reader::getCanMonoTimes() const {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader CarState::Reader::getCanMonoTimesDEPRECATED() const {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder CarState::Builder::getCanMonoTimes() {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder CarState::Builder::getCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS));
 }
-inline void CarState::Builder::setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
+inline void CarState::Builder::setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS), value);
 }
-inline void CarState::Builder::setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value) {
+inline void CarState::Builder::setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS), value);
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder CarState::Builder::initCanMonoTimes(unsigned int size) {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder CarState::Builder::initCanMonoTimesDEPRECATED(unsigned int size) {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS), size);
 }
-inline void CarState::Builder::adoptCanMonoTimes(
+inline void CarState::Builder::adoptCanMonoTimesDEPRECATED(
     ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> CarState::Builder::disownCanMonoTimes() {
+inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> CarState::Builder::disownCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
       ::capnp::bounded<4>() * ::capnp::POINTERS));
 }
@@ -5042,40 +5047,40 @@ inline ::capnp::Orphan< ::capnp::List< ::cereal::RadarData::RadarPoint,  ::capnp
       ::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
-inline bool RadarData::Reader::hasCanMonoTimes() const {
+inline bool RadarData::Reader::hasCanMonoTimesDEPRECATED() const {
   return !_reader.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
 }
-inline bool RadarData::Builder::hasCanMonoTimes() {
+inline bool RadarData::Builder::hasCanMonoTimesDEPRECATED() {
   return !_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader RadarData::Reader::getCanMonoTimes() const {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader RadarData::Reader::getCanMonoTimesDEPRECATED() const {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarData::Builder::getCanMonoTimes() {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarData::Builder::getCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
-inline void RadarData::Builder::setCanMonoTimes( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
+inline void RadarData::Builder::setCanMonoTimesDEPRECATED( ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Reader value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), value);
 }
-inline void RadarData::Builder::setCanMonoTimes(::kj::ArrayPtr<const  ::uint64_t> value) {
+inline void RadarData::Builder::setCanMonoTimesDEPRECATED(::kj::ArrayPtr<const  ::uint64_t> value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), value);
 }
-inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarData::Builder::initCanMonoTimes(unsigned int size) {
+inline  ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>::Builder RadarData::Builder::initCanMonoTimesDEPRECATED(unsigned int size) {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), size);
 }
-inline void RadarData::Builder::adoptCanMonoTimes(
+inline void RadarData::Builder::adoptCanMonoTimesDEPRECATED(
     ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>&& value) {
   ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS), kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> RadarData::Builder::disownCanMonoTimes() {
+inline ::capnp::Orphan< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>> RadarData::Builder::disownCanMonoTimesDEPRECATED() {
   return ::capnp::_::PointerHelpers< ::capnp::List< ::uint64_t,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
       ::capnp::bounded<2>() * ::capnp::POINTERS));
 }
@@ -6587,16 +6592,16 @@ inline void CarParams::Builder::setSteerControlType( ::cereal::CarParams::SteerC
       ::capnp::bounded<30>() * ::capnp::ELEMENTS, value);
 }
 
-inline bool CarParams::Reader::getRadarOffCan() const {
+inline bool CarParams::Reader::getRadarUnavailable() const {
   return _reader.getDataField<bool>(
       ::capnp::bounded<8>() * ::capnp::ELEMENTS);
 }
 
-inline bool CarParams::Builder::getRadarOffCan() {
+inline bool CarParams::Builder::getRadarUnavailable() {
   return _builder.getDataField<bool>(
       ::capnp::bounded<8>() * ::capnp::ELEMENTS);
 }
-inline void CarParams::Builder::setRadarOffCan(bool value) {
+inline void CarParams::Builder::setRadarUnavailable(bool value) {
   _builder.setDataField<bool>(
       ::capnp::bounded<8>() * ::capnp::ELEMENTS, value);
 }
@@ -8580,6 +8585,20 @@ inline  ::uint8_t CarParams::CarFw::Builder::getBus() {
 inline void CarParams::CarFw::Builder::setBus( ::uint8_t value) {
   _builder.setDataField< ::uint8_t>(
       ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+}
+
+inline bool CarParams::CarFw::Reader::getLogging() const {
+  return _reader.getDataField<bool>(
+      ::capnp::bounded<96>() * ::capnp::ELEMENTS);
+}
+
+inline bool CarParams::CarFw::Builder::getLogging() {
+  return _builder.getDataField<bool>(
+      ::capnp::bounded<96>() * ::capnp::ELEMENTS);
+}
+inline void CarParams::CarFw::Builder::setLogging(bool value) {
+  _builder.setDataField<bool>(
+      ::capnp::bounded<96>() * ::capnp::ELEMENTS, value);
 }
 
 inline  ::cereal::CarParams::LateralTuning::Which CarParams::LateralTuning::Reader::which() const {

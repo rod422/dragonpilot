@@ -9,13 +9,10 @@
             "cereal/visionipc/visionipc_client.h",
             "cereal/visionipc/visionipc_server.h"
         ],
-        "include_dirs": [
-            "./cereal/visionipc"
-        ],
         "language": "c++",
         "name": "cereal.visionipc.visionipc_pyx",
         "sources": [
-            "/data/dp-private/cereal/visionipc/visionipc_pyx.pyx"
+            "/data/openpilot/cereal/visionipc/visionipc_pyx.pyx"
         ]
     },
     "module_name": "cereal.visionipc.visionipc_pyx"
@@ -794,10 +791,10 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "stdexcept"
 #include "typeinfo"
 #include <vector>
-#include "visionbuf.h"
-#include "visionipc.h"
-#include "visionipc_server.h"
-#include "visionipc_client.h"
+#include "cereal/visionipc/visionbuf.h"
+#include "cereal/visionipc/visionipc.h"
+#include "cereal/visionipc/visionipc_server.h"
+#include "cereal/visionipc/visionipc_client.h"
 #include "pythread.h"
 #include <stdlib.h>
 #include "pystate.h"

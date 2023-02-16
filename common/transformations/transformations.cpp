@@ -16,7 +16,7 @@
         "language": "c++",
         "name": "common.transformations.transformations",
         "sources": [
-            "/data/dp-private/common/transformations/transformations.pyx"
+            "/data/openpilot/common/transformations/transformations.pyx"
         ]
     },
     "module_name": "common.transformations.transformations"
