@@ -980,4 +980,12 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       Priority.MID, VisualAlert.none,
       AudibleAlert.disengage, .2),
   },
+
+  EventName.atlEngageSound: {
+    ET.PERMANENT: EngagementAlert(AudibleAlert.engage),
+  },
+
+  EventName.atlDisengageSound: {
+    ET.PERMANENT: EngagementAlert(AudibleAlert.disengage),
+  },
 }
