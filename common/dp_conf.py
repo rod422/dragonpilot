@@ -105,7 +105,7 @@ confs = [
   # # {'name': 'dp_gpxd', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_hotspot_on_boot', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_honda_eps_mod', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
-  {'name': 'dp_dm', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
+  {'name': 'dp_dm', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   {'name': 'dp_speed_check', 'default': True, 'type': 'Bool', 'conf_type': ['param', 'struct']},
   {'name': 'dp_temp_check', 'default': True, 'type': 'Bool', 'conf_type': ['param']},
   # {'name': 'dp_vag_resume_fix', 'default': False, 'type': 'Bool', 'conf_type': ['param']},
