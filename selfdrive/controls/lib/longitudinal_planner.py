@@ -20,17 +20,25 @@ from system.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 A_CRUISE_MIN = -1.2
+A_CRUISE_MIN_VALS_TOYOTA = [-0.6,  -0.6,  -0.7,  -0.8,  -0.8,  -0.5]
+A_CRUISE_MIN_BP_TOYOTA =   [0.,    8.3,   14,    20.,   30.,   55.]
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
+A_CRUISE_MAX_VALS_TOYOTA = [2.0, 1.7, 1.3, 1.0, 0.89, 0.81, 0.63, 0.4,  0.31, 0.11]  # Sets the limits of the planner accel, PID may exceed
+A_CRUISE_MAX_BP_TOYOTA =   [0.,  3.,  6.,  8.,  11.,  15.,  20.,  25.,  30.,  55.]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
+def get_min_accel_toyota(v_ego):
+  return interp(v_ego, A_CRUISE_MIN_BP_TOYOTA, A_CRUISE_MIN_VALS_TOYOTA)
 
 def get_max_accel(v_ego):
   return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
 
+def get_max_accel_toyota(v_ego):
+  return interp(v_ego, A_CRUISE_MAX_BP_TOYOTA, A_CRUISE_MAX_VALS_TOYOTA)
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
   """
@@ -102,7 +110,10 @@ class LongitudinalPlanner:
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
     if self.mpc.mode == 'acc':
-      accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+      if self.CP.carName == "toyota":
+        accel_limits = [get_min_accel_toyota(v_ego), get_max_accel_toyota(v_ego)]
+      else:
+        accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:
       accel_limits = [MIN_ACCEL, MAX_ACCEL]
@@ -131,11 +142,10 @@ class LongitudinalPlanner:
     accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05, a_min_sol)
     accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
 
-    self.mpc.set_weights(prev_accel_constraint)
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'], self.v_model_error)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise_sol, x, v, a, j)
+    self.mpc.update(sm['carState'], sm['radarState'], v_cruise_sol, x, v, a, j, prev_accel_constraint)
 
     self.v_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.a_solution)
