@@ -8,7 +8,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR
+from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD,  EV_HYBRID_CAR, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR
 
 from common.params import Params, put_nonblocking
 import time
@@ -59,6 +59,7 @@ class CarState(CarStateBase):
     self.read_distance_lines_init = False
     self.distance = 0
     self.dp_toyota_fp_btn_link = Params().get_bool('dp_toyota_fp_btn_link')
+    self.dp_toyota_sng = Params().get_bool('dp_toyota_sng')
 
     # zss
     self.dp_toyota_zss = Params().get_bool('dp_toyota_zss')
@@ -183,7 +184,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR):
       self.distance = cp_cam.vl["ACC_CONTROL"]['DISTANCE']
-    elif self.CP.carFingerprint in [CAR.PRIUS, CAR.RAV4H, CAR.RAV4, CAR.HIGHLANDER]:
+    elif self.CP.smartDsu:
       self.distance = cp.vl["SDSU"]['FD_BUTTON']
 
     #dp
@@ -211,7 +212,7 @@ class CarState(CarStateBase):
     else:
       ret.accFaulted = cp.vl["PCM_CRUISE_2"]["ACC_FAULTED"] != 0
       ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]["MAIN_ON"] != 0
-      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS
+      ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS * self.CP.wheelSpeedFactor
       cluster_set_speed = cp.vl["PCM_CRUISE_SM"]["UI_SET_SPEED"]
 
     # UI_SET_SPEED is always non-zero when main is on, hide until first enable
@@ -235,7 +236,9 @@ class CarState(CarStateBase):
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]["LOW_SPEED_LOCKOUT"] == 2
 
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
-    if self.CP.carFingerprint not in (NO_STOP_TIMER_CAR - TSS2_CAR):
+    if self.dp_toyota_sng and self.CP.carFingerprint in EV_HYBRID_CAR and self.CP.smartDsu:
+      ret.cruiseState.standstill = False
+    elif not self.dp_toyota_sng and self.CP.carFingerprint not in (NO_STOP_TIMER_CAR - TSS2_CAR):
       # ignore standstill state in certain vehicles, since pcm allows to restart with just an acceleration request
       ret.cruiseState.standstill = self.pcm_acc_status == 7
     ret.cruiseState.enabled = bool(cp.vl["PCM_CRUISE"]["CRUISE_ACTIVE"])
@@ -403,8 +406,9 @@ class CarState(CarStateBase):
       signals.append(("GAS_PEDAL", "GAS_PEDAL"))
       checks.append(("GAS_PEDAL", 33))
     #arne
-    if CP.carFingerprint in [CAR.PRIUS, CAR.RAV4H, CAR.RAV4, CAR.HIGHLANDER]:
-      signals.append(("FD_BUTTON", "SDSU", 0))
+    if CP.smartDsu:
+      signals.append(("FD_BUTTON", "SDSU"))
+      checks.append(("SDSU", 0))
     #dp acceleration
     if CP.carFingerprint in (CAR.RAV4_TSS2, CAR.LEXUS_ES_TSS2, CAR.HIGHLANDER_TSS2):
       signals.append(("SPORT_ON_2", "GEAR_PACKET"))
