@@ -21,14 +21,14 @@ class Service:
 services = {
   # service: (should_log, frequency, qlog decimation (optional))
   # note: the "EncodeIdx" packets will still be in the log
-  "gyroscope": (True, 104., 104),
-  "gyroscope2": (True, 100., 100),
-  "accelerometer": (True, 104., 104),
-  "accelerometer2": (True, 100., 100),
-  "magnetometer": (True, 100., 100),
-  "lightSensor": (True, 100., 100),
-  "temperatureSensor": (True, 100., 100),
-  "gpsNMEA": (True, 9.),
+  # "gyroscope": (True, 104., 104),
+  # "gyroscope2": (True, 100., 100),
+  # "accelerometer": (True, 104., 104),
+  # "accelerometer2": (True, 100., 100),
+  # "magnetometer": (True, 100., 100),
+  # "lightSensor": (True, 100., 100),
+  # "temperatureSensor": (True, 100., 100),
+  # "gpsNMEA": (True, 9.),
   "deviceState": (True, 2., 1),
   "can": (True, 100., 1223),  # decimation gives ~5 msgs in a full segment
   "controlsState": (True, 100., 10),
@@ -64,10 +64,10 @@ services = {
   "roadCameraState": (True, 20., 20),
   # "driverCameraState": (True, 20., 20),
   # "driverEncodeIdx": (False, 20., 1),
-  "driverStateV2": (True, 20., 10),
+  # "driverStateV2": (True, 20., 10),
   # "driverMonitoringState": (True, 20., 10),
-  "wideRoadEncodeIdx": (False, 20., 1),
-  "wideRoadCameraState": (True, 20., 20),
+  # "wideRoadEncodeIdx": (False, 20., 1),
+  # "wideRoadCameraState": (True, 20., 20),
   "modelV2": (True, 20., 40),
   "managerState": (True, 2., 1),
   "uploaderState": (True, 0., 1),
@@ -79,7 +79,7 @@ services = {
   "uiPlan": (True, 20., 40.),
   "qRoadEncodeIdx": (False, 20.),
   "userFlag": (True, 0., 1),
-  "microphone": (True, 10., 10),
+  # "microphone": (True, 10., 10),
 
   # debug
   "uiDebug": (True, 0., 1),

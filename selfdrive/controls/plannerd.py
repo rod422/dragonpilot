@@ -66,7 +66,8 @@ def plannerd_thread(sm=None, pm=None):
       lateral_planner.publish(sm, pm)
       longitudinal_planner.update(sm)
       longitudinal_planner.publish(sm, pm)
-      publish_ui_plan(sm, pm, lateral_planner, longitudinal_planner)
+      if lat_version == 0:
+        publish_ui_plan(sm, pm, lateral_planner, longitudinal_planner)
 
 def main(sm=None, pm=None):
   plannerd_thread(sm, pm)

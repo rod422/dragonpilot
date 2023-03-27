@@ -663,18 +663,12 @@ class Controls:
                    (not standstill or self.joystick_mode)
     CC.longActive = self.enabled and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
 
-    if self.sm['dragonConf'].dpAtl > 0:
-      if not self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED:
-        pass
-      elif not CS.cruiseState.available:
+    if not standstill and CS.cruiseState.available and self.sm['dragonConf'].dpAtl > 0:
+      if self.sm['liveCalibration'].calStatus != Calibration.CALIBRATED:
         pass
       elif CS.steerFaultTemporary:
         pass
       elif CS.steerFaultPermanent:
-        pass
-      elif standstill:
-        pass
-      elif CS.standstill:
         pass
       elif CS.gearShifter == car.CarState.GearShifter.reverse:
         pass
