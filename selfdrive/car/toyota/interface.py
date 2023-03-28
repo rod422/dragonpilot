@@ -254,13 +254,13 @@ class CarInterface(CarInterfaceBase):
     tune = ret.longitudinalTuning
     tune.deadzoneBP = [0., 9.]
     tune.deadzoneV = [.0, .15]
-    tune.kpBP = [0., 5., 20., 30.]
-    tune.kpV = [1.3, 1.0, 0.7, 0.1]
-    tune.kiBP = [0.,   3.1,  13.9,  19.4,   30.,  33.,  40.]
-    tune.kiV =  [.032, .073, .16,   .176,   .01,  .005, .0005]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 3., 4., 5., 12., 20., 23., 40.]
+    tune.kiV = [.08, .16, .26, .215, .20, .166, .1, .006]
     if candidate in TSS2_CAR:
       ret.vEgoStarting = 0.1 # needs to be > or == vEgoStopping
-      ret.stoppingDecelRate = 0.01  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
+      ret.stoppingDecelRate = 0.04  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
 
     return ret
 
