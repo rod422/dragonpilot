@@ -259,7 +259,6 @@ class LongitudinalPlanner:
     self.dp_accel_profile = sm['dragonConf'].dpAccelProfile
     self.dp_following_profile_ctrl = sm['dragonConf'].dpFollowingProfileCtrl
     self.dp_following_profile = sm['dragonConf'].dpFollowingProfile
-    # self.get_path_length_idx(sm['modelV2']))
     dp_reset_state = False
 
     if sm['dragonConf'].dpE2EConditional:
