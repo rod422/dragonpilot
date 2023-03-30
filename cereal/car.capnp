@@ -120,8 +120,9 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     speedLimitValueChange @117;
     leadMovingAlertSilent @118;
     leadMovingAlert @119;
-    atlEngageSound @120;
-    atlDisengageSound @121;
+    manualSteeringRequiredBlinkersOn @120;
+    atlEngageSound @121;
+    atlDisengageSound @122;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
