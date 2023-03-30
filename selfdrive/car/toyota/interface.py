@@ -251,31 +251,15 @@ class CarInterface(CarInterfaceBase):
     ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGasInterceptor) else MIN_ACC_SPEED
 
     tune = ret.longitudinalTuning
-    tune.deadzoneBP = [0., 9., 12.]
-    tune.deadzoneV = [.0, .15, 0.05]
-    if candidate in TSS2_CAR or ret.enableGasInterceptor:
-      tune.kpBP = [0., 5., 20., 30.]
-      tune.kpV = [1.3, 1.0, 0.7, 0.1]
-      tune.kiBP = [0.,   3.1,  13.9,  19.4,   30.,  33.,  40.]
-      tune.kiV =  [.032, .073, .16,   .176,   .01,  .005, .0005]
-      if candidate in TSS2_CAR:
-        #ret.vEgoStopping = 0.3  # car is near 0.1 to 0.2 when car starts requesting stopping accel
-        ret.vEgoStarting = 0.1 # needs to be > or == vEgoStopping
-        #ret.stopAccel = -0.1  # Toyota requests -0.4 when stopped
-        ret.stoppingDecelRate = 0.01  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
-        #ret.longitudinalActuatorDelayLowerBound = 0.3
-        #ret.longitudinalActuatorDelayUpperBound = 0.3
-        ### stock ###
-        #ret.vEgoStopping = 0.25
-        #ret.vEgoStarting = 0.25
-        #ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
-    else:
-      tune.kpBP = [0., 35.]
-      tune.kiBP = [0.]
-      tune.kdBP = [0., 16., 20., 45.]
-      tune.kpV = [1.2, 1.4]
-      tune.kiV = [.36]
-      tune.kdV = [.25, .3, .4, .7]
+    tune.deadzoneBP = [0., 9.]
+    tune.deadzoneV = [.0, .15]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 3., 4., 5., 12., 20., 23., 40.]
+    tune.kiV = [.08, .16, .26, .215, .20, .166, .1, .006]
+    if candidate in TSS2_CAR:
+      ret.vEgoStarting = 0.1 # needs to be > or == vEgoStopping
+      ret.stoppingDecelRate = 0.04  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
 
     return ret
 
