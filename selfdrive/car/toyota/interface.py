@@ -251,38 +251,15 @@ class CarInterface(CarInterfaceBase):
     ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGasInterceptor) else MIN_ACC_SPEED
 
     tune = ret.longitudinalTuning
-    tune.deadzoneBP = [0., 9., 12.]
-    tune.deadzoneV = [.0, .15, 0.05]
-    if candidate in TSS2_CAR or ret.enableGasInterceptor:
-
-      tune.kpBP = [0., 5., 20., 30.]
-      tune.kpV = [1.3, 1.0, 0.7, 0.1]
-      #really smooth (make it toggleable)
-      #tune.kiBP = [0., 0.07, 5, 8, 11., 18., 20., 24., 33.]
-      #tune.kiV = [.001, .01, .1, .18, .21, .22, .23, .22, .001]
-      #okay ish
-      #tune.kiBP = [0., 11., 17., 20., 24., 30., 33., 40.]
-      #tune.kiV = [.001, .21, .22, .23, .22, .1, .001, .0001]
-      tune.kiBP = [0.,  5.6,  11.1,  19.4,   30.,  33., 40.]
-      tune.kiV =  [.1, .127,  .185,  .185,   .15,  .09, .01]
-      if candidate in TSS2_CAR:
-        #ret.vEgoStopping = 0.3  # car is near 0.1 to 0.2 when car starts requesting stopping accel
-        ret.vEgoStarting = 0.6  # needs to be > or == vEgoStopping
-        #ret.stopAccel = -0.1  # Toyota requests -0.4 when stopped
-        ret.stoppingDecelRate = 0.009  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
-        #ret.longitudinalActuatorDelayLowerBound = 0.3
-        #ret.longitudinalActuatorDelayUpperBound = 0.3
-        ### stock ###
-        #ret.vEgoStopping = 0.25
-        #ret.vEgoStarting = 0.25
-        #ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
-    else:
-      tune.kpBP = [0., 35.]
-      tune.kiBP = [0.]
-      tune.kdBP = [0., 16., 20., 45.]
-      tune.kpV = [1.2, 1.4]
-      tune.kiV = [.36]
-      tune.kdV = [.25, .3, .4, .7]
+    tune.deadzoneBP = [0., 9.]
+    tune.deadzoneV = [.0, .15]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 3., 4., 5., 12., 20., 23., 40.]
+    tune.kiV = [.08, .16, .26, .215, .20, .166, .1, .006]
+    if candidate in TSS2_CAR:
+      ret.vEgoStarting = 0.1 # needs to be > or == vEgoStopping
+      ret.stoppingDecelRate = 0.04  # reach stopping target smoothly - seems to take 0.5 seconds to go from 0 to -0.4
 
     return ret
 
