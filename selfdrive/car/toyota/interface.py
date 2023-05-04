@@ -204,7 +204,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8
       ret.mass = 4300. * CV.LB_TO_KG + STD_CARGO_KG
 
-    elif candidate in (CAR.ALPHARD_TSS2, CAR.ALPHARDH_TSS2):
+    elif candidate in (CAR.ALPHARD_TSS2, CAR.ALPHARDH_TSS2, CAR.LEXUS_LMH_TSS2, CAR.LEXUS.LMH23.TSS2):
       stop_and_go = True
       ret.wheelbase = 3.00
       ret.steerRatio = 14.2
