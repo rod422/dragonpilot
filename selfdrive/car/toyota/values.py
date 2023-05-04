@@ -95,6 +95,7 @@ class CAR:
   LEXUS_RXH = "LEXUS RX HYBRID 2017"
   LEXUS_RX_TSS2 = "LEXUS RX 2020"
   LEXUS_RXH_TSS2 = "LEXUS RX HYBRID 2020"
+  LEXUS_LMH_TSS2 = "LEXUS LM HYBRID 2020"
 
 
 class Footnote(Enum):
@@ -193,6 +194,7 @@ CAR_INFO: Dict[str, Union[ToyotaCarInfo, List[ToyotaCarInfo]]] = {
   ],
   CAR.LEXUS_RX_TSS2: ToyotaCarInfo("Lexus RX 2020-22"),
   CAR.LEXUS_RXH_TSS2: ToyotaCarInfo("Lexus RX Hybrid 2020-21"),
+  CAR.LEXUS_LMH_TSS2: ToyotaCarInfo("Lexus LM Hybrid 2020-21"),
 }
 
 # (addr, cars, bus, 1/freq*100, vl)
@@ -2116,6 +2118,23 @@ FW_VERSIONS = {
       b'\x028646FV201000\x00\x00\x00\x008646G2601400\x00\x00\x00\x00',
     ],
   },
+  CAR.LEXUS_LMH_TSS2: {
+    (Ecu.engine, 0x7e0, None): [
+      b'\x0235880000\x00\x00\x00\x00\x00\x00\x00\x00A4701000\x00\x00\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.eps, 0x7a1, None): [
+      b'8965B58100\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.abs, 0x7b0, None): [
+      b'F152658430\x00\x00\x00\x00\x00\x00',
+    ],
+    (Ecu.fwdRadar, 0x750, 0xf): [
+      b'\x018821F3301400\x00\x00\x00\x00',
+    ],
+    (Ecu.fwdCamera, 0x750, 0x6d): [
+      b'\x028646F5803200\x00\x00\x00\x008646G2601400\x00\x00\x00\x00',
+    ],
+  },
 }
 
 STEER_THRESHOLD = 100
@@ -2168,6 +2187,7 @@ DBC = {
   CAR.MIRAI: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
   CAR.ALPHARD_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
   CAR.ALPHARDH_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
+  CAR.LEXUS_LM_TSS2: dbc_dict('toyota_nodsu_pt_generated', 'toyota_tss2_adas'),
 }
 
 # These cars have non-standard EPS torque scale factors. All others are 73
